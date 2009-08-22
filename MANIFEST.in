@@ -1,0 +1,6 @@
+include pytylerc
+include INSTALL
+include LICENSE
+include README
+include TODO
+recursive-include PyTyle/*

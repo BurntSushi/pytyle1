@@ -1,0 +1,217 @@
+#!/usr/bin/python
+#===============================================================================
+# PyTyle - A manual tiling manager
+# Copyright (C) 2009  Andrew Gallant <andrew@pytyle.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#===============================================================================
+
+"""
+pytyle
+
+PyTyle is meant to be run as a daemon, that is, in the background. If you're
+trying it out, feel free to run it in a terminal (especially if it isn't working
+properly, it could be outputting some useful error messages). I personally
+added PyTyle to my ~/.xinitrc like so:
+
+    pytyle &
+    
+The entire source code of PyTyle is *HEAVILY* documented. Why? Because there
+aren't too many things I hate worse than undocumented code. I also love to
+write about how clever I am :-)
+
+Seriously though, I took extra care with this project because the documentation
+for python-xlib is abysmal. I would help contribute to it myself, but this was
+my first time using it (and python, incidentally), so my experience isn't up
+to snuff with it. At some point, though, I would like to create a Python window
+manager, and will probably use PyTyle (I like *manual* tiling) in it somewhere.
+When and if that happens, I'll try to write up some better python-xlib 
+documentation. However, it looks like XCB is rising...
+
+Anyway, if you're looking at PyTyle because it does something with python-xlib 
+that you want to know how to do (and I only say this because I did this myself 
+with many a different programs), then search no further than Probe.py and 
+possibly Event.py. No other files interface with python-xlib.
+"""
+
+# Some basics...
+import time, sys, os, shutil, distutils.sysconfig
+
+# What we need.
+from PyTyle.Config import Config
+from PyTyle.State import State
+from PyTyle.Desktop import Desktop
+from PyTyle.Window import Window
+from PyTyle.Event import Event
+from PyTyle.Tile import Tile
+
+# load configuration
+# Very easy to use Python as a config file...
+# Should I change it to a more traditional config?  
+try:
+    config_file = "%s/.pytylerc" % os.environ['HOME']
+    if not os.access(config_file, os.F_OK | os.R_OK):
+        shutil.copyfile("%s/PyTyle/pytylerc" % (distutils.sysconfig.get_python_lib()), config_file)
+         
+    if os.access(config_file, os.F_OK | os.R_OK):
+        execfile(config_file)
+except:
+    print >> sys.stderr, "Could not write configuration file to home directory and load it. Exiting!"
+    sys.exit(0)
+    
+# initialize the tilers dynamically, so all we need to do
+# is add a tiler to Tilers, and add it to the configuration
+for module in Config.MISC['tilers']:
+    tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
+    Config.TILERS[module] = tmp.CLASS
+    
+# Load all the desktops. This will fetch a list
+# of desktops from the window manager, instantiate
+# each of them (which also initializes the screens),
+# and finally sets the tilers for each screen.
+Desktop.load_desktops()
+
+# Scan for new (this is init, so all) windows, and
+# loads them up with Window.load_window.
+# load_window queries for window information, decides
+# which screen a window is on, etc. It may also *NOT*
+# load the given window if it decides its a popup.
+Window.load_new_windows()
+
+# Initialize hot keys...
+# See also, grab_key in Event.py
+State.register_hotkeys()
+
+# Asks the window manager for the currently active
+# desktop and window, and updates the State
+# accordingly (current desktop, current screen,
+# and current window).
+State.reload_active()
+
+# Stall and await orders...
+while True:
+    # This is our queue of tilings that we need to flush.
+    # Screens are queued for tiling when windows change,
+    # disappear, popup, etc. We almost never make direct
+    # calls to the Tile.tile method, and instead "tell"
+    # the screen that it needs to be retiled.
+    while State.queue_has_screens():
+        screen = State.dequeue_screen()
+        Tile.dispatch(screen.get_tiler(), Tile.tile)
+        
+    # This loads up the next event.
+    e = Event()
+    
+    # If the event is a key press, we need to call our
+    # dispatcher to run the proper tiling action.
+    if e.is_keypress():
+        try:
+            Tile.dispatch(State.get_desktop().SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
+        except:
+            print >> sys.stderr, "Could not complete key press request"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
+            continue
+        
+    # If a window receives focus or changes to another
+    # desktop, then we need to reload the State with
+    # the proper active window.
+    elif e.is_focus_in() or e.is_desktop_change():
+        time.sleep(Config.MISC['timeout'])
+        State.reload_active()
+        
+    # If a new window is created, we need to let PyTyle
+    # know about it. Please also note that, load_new_windows
+    # scans for new windows and calls Window.load_window
+    # for each new window. More specifically, load_window
+    # is *not* guaranteed to load the window- it could be
+    # a popup. (It will load hidden windows though, as they
+    # are handled by the tiling storage class as they could
+    # be useful later.)
+    elif e.is_window_create():   
+        time.sleep(Config.MISC['timeout'])
+        
+        try:
+            Window.load_new_windows()
+        except:
+            print >> sys.stderr, "Could not tile new window - could be a popup that disappear"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
+            continue
+            
+    # If a window is closed, we need to let PyTyle know about
+    # it. Keep in mind that we are *scanning* to detect which
+    # window was destroyed rather than relying on the window
+    # object passed with the event. (It is unreliable for our
+    # purposes.)
+    elif e.is_window_destroy():
+        time.sleep(Config.MISC['timeout'])
+        
+        try:
+            newwins = State.scan_all_windows()
+            for win in State.get_windows().values():
+                if long(win.id, 0) not in newwins:
+                    win.delete()
+                    
+            State.reload_active()
+        except:
+            print >> sys.stderr, "Could not properly handle window destruction"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
+            continue
+        
+    # A window changes when it's resized/moved, or when its
+    # desktop property changes. In those cases, we want to
+    # "refresh" the window with its real and current state.
+    #
+    # Note: Window.refresh() will do only as much work as
+    # is needed. It is guaranteed to query X for the current
+    # window information, but from there, it will selectively
+    # determine if screen(s) need updating, or if we need
+    # to reload PyTyle's State.
+    elif e.is_window_change():
+        try:       
+            if e.get_window_id() in State.get_windows():
+                State.get_windows()[e.get_window_id()].refresh()
+        except:
+            print >> sys.stderr, "Could not properly handle window changing event (moved/resized/desktop change)"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
+            
+    # If a window's state changes, we need to find it in PyTyle
+    # and refresh it. Refresh will handle whether or not the
+    # screen needs to be re-tiled.
+    elif e.is_state_change():        
+        try:
+            if e.get_window_id() in State.get_windows():
+                State.get_windows()[e.get_window_id()].refresh()
+        except:
+            print >> sys.stderr, "Could not properly handle window state event (iconified?)"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
+            
+    # Detects if the "_NET_WORKAREA" property changed.
+    # Meaning the number of screens changed probably, so
+    # we need to refresh our image of the current State.
+    elif e.is_screen_change():
+        try:
+            State.wipe()
+            Desktop.load_desktops()
+            Window.load_new_windows()
+            State.reload_active()
+        except:
+            print >> sys.stderr, "Could not properly handle screen change"
+            print >> sys.stderr, sys.exc_info()
+            print >> sys.stderr, '\n'
