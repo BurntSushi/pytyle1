@@ -77,6 +77,10 @@ for module in Config.MISC['tilers']:
     tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
     Config.TILERS[module] = tmp.CLASS
     
+# Initialize hot keys...
+# See also, grab_key in Event.py
+State.register_hotkeys()
+    
 # Load all the desktops. This will fetch a list
 # of desktops from the window manager, instantiate
 # each of them (which also initializes the screens),
@@ -89,10 +93,6 @@ Desktop.load_desktops()
 # which screen a window is on, etc. It may also *NOT*
 # load the given window if it decides its a popup.
 Window.load_new_windows()
-
-# Initialize hot keys...
-# See also, grab_key in Event.py
-State.register_hotkeys()
 
 # Asks the window manager for the currently active
 # desktop and window, and updates the State
