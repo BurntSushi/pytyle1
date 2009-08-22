@@ -130,7 +130,8 @@ class Event:
     
     #
     # Reports whether the screen setup has changed by checking the
-    # _NET_WORKAREA property.
+    # _NET_WORKAREA property. The workarea is the space we have to
+    # work with provided by the window manager.
     #
     def is_screen_change(self):
         if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_WORKAREA"):
