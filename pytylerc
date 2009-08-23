@@ -48,6 +48,9 @@ Config.MISC = {
                #
                # Note: Using a timeout seems like a hack. Any better
                # ideas?
+               #
+               # Note 2: I tested this on my P3 1.0 GHz with 128MB
+               # of memory, and this value worked fine.
                'timeout': 0.1,
                
                # Toggles window decorations. I don't not recommend
