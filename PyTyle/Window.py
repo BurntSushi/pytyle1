@@ -99,8 +99,10 @@ class Window:
     # 
     def __init__(self, screen, attrs):
         self.update_attributes(attrs)
-        self.origx = self.x
-        self.origy = self.y
+        self.x = 0
+        self.y = 0
+        self.origx = attrs['x']
+        self.origy = attrs['y']
         self.origwidth = self.width
         self.origheight = self.height
         self.screen = screen
@@ -150,6 +152,7 @@ class Window:
     def delete(self):
         self.screen.delete_window(self)
         self.screen.needs_tiling()
+        State.reload_active()
         
     #
     # Asks the window manager to maximize the window. It does not currently
@@ -189,9 +192,9 @@ class Window:
         update['height'] = self.height
         self.update_attributes(update)
         
-        if olddesk.id != self.desktop or (olddesk.id == self.desktop and not oldscreen.is_on_screen(self.x, self.y)):
+        if olddesk.id != self.desktop or (olddesk.id == self.desktop and not oldscreen.is_on_screen(update['x'], update['y'])):
             for screen in State.get_desktops()[self.desktop].screens.values():
-                if screen.is_on_screen(self.x, self.y):                  
+                if screen.is_on_screen(update['x'], update['y']):                  
                     oldscreen.delete_window(self)
                     screen.add_window(self)
                     screen.needs_tiling()
@@ -289,8 +292,6 @@ class Window:
     #
     def update_attributes(self, attrs):
         self.id = attrs['id']
-        self.x = attrs['x']
-        self.y = attrs['y']
         self.width = attrs['width']
         self.height = attrs['height']
         self.d_left = attrs['d_left']

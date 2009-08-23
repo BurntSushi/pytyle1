@@ -189,7 +189,7 @@ class Tile:
         # stop if current screen...
         if self.screen.id == screen_num:
             return
-        
+                
         for screen in self.screen.desktop.screens.values():
             if screen_num == screen.id:
                 self.screen.delete_window(self.screen.get_active())

@@ -134,7 +134,7 @@ class Event:
     # work with provided by the window manager.
     #
     def is_screen_change(self):
-        if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_WORKAREA"):
+        if self._event and self._event.type == X.PropertyNotify and (self._event.atom == PROBE.atom("_NET_WORKAREA") or self._event.atom == PROBE.atom("_NET_NUMBER_OF_DESKTOPS")):
             return True
         return False
     
@@ -145,6 +145,15 @@ class Event:
     #
     def is_state_change(self):
         if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("WM_STATE"):
+            return True
+        return False
+    
+    #
+    # Reports whether the window manager's client list has changed or not.
+    # Useful for detecting add/removal of windows.
+    #
+    def is_windowlist_change(self):
+        if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_CLIENT_LIST"):
             return True
         return False
     

@@ -52,10 +52,20 @@ import time, sys, os, shutil, distutils.sysconfig
 # What we need.
 from PyTyle.Config import Config
 from PyTyle.State import State
+from PyTyle.Probe import PROBE
 from PyTyle.Desktop import Desktop
 from PyTyle.Window import Window
 from PyTyle.Event import Event
 from PyTyle.Tile import Tile
+
+# Before moving on, we must make sure the window
+# manager is running. If not, wait for it.
+if not PROBE.is_wm_running():
+    while True:
+        time.sleep(1)
+        if PROBE.is_wm_running():
+            time.sleep(10)
+            break
 
 # load configuration
 # Very easy to use Python as a config file...
@@ -107,9 +117,11 @@ while True:
     # disappear, popup, etc. We almost never make direct
     # calls to the Tile.tile method, and instead "tell"
     # the screen that it needs to be retiled.
-    while State.queue_has_screens():
-        screen = State.dequeue_screen()
-        Tile.dispatch(screen.get_tiler(), Tile.tile)
+    if State.queue_has_screens():
+        while State.queue_has_screens():
+            screen = State.dequeue_screen()
+            Tile.dispatch(screen.get_tiler(), Tile.tile)
+        time.sleep(Config.MISC['timeout'])
         
     # This loads up the next event.
     e = Event()
@@ -132,15 +144,9 @@ while True:
         time.sleep(Config.MISC['timeout'])
         State.reload_active()
         
-    # If a new window is created, we need to let PyTyle
-    # know about it. Please also note that, load_new_windows
-    # scans for new windows and calls Window.load_window
-    # for each new window. More specifically, load_window
-    # is *not* guaranteed to load the window- it could be
-    # a popup. (It will load hidden windows though, as they
-    # are handled by the tiling storage class as they could
-    # be useful later.)
-    elif e.is_window_create():   
+    # If the window manager's client list changes, then
+    # we need to add or remove a window
+    elif e.is_windowlist_change():
         time.sleep(Config.MISC['timeout'])
         
         try:
@@ -150,22 +156,12 @@ while True:
             print >> sys.stderr, sys.exc_info()
             print >> sys.stderr, '\n'
             continue
-            
-    # If a window is closed, we need to let PyTyle know about
-    # it. Keep in mind that we are *scanning* to detect which
-    # window was destroyed rather than relying on the window
-    # object passed with the event. (It is unreliable for our
-    # purposes.)
-    elif e.is_window_destroy():
-        time.sleep(Config.MISC['timeout'])
         
         try:
             newwins = State.scan_all_windows()
             for win in State.get_windows().values():
                 if long(win.id, 0) not in newwins:
                     win.delete()
-                    
-            State.reload_active()
         except:
             print >> sys.stderr, "Could not properly handle window destruction"
             print >> sys.stderr, sys.exc_info()
@@ -214,4 +210,4 @@ while True:
         except:
             print >> sys.stderr, "Could not properly handle screen change"
             print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, '\n' 

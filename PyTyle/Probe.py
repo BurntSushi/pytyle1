@@ -103,8 +103,15 @@ class Probe:
     # to tell us when to use this (since the events can come from the root
     # window, and thus give us unknown id's for any given window).
     #
+    # Note: It's possible that we won't have an active window.
+    #
     def get_active_window_id(self):
-        return hex(self.get_root().get_full_property(self.atom("_NET_ACTIVE_WINDOW"), 0).value[0])
+        active = self.get_root().get_full_property(self.atom("_NET_ACTIVE_WINDOW"), 0)
+        
+        if hasattr(active, 'value'):
+            return hex(active.value[0])
+        else:
+            return None
 
     #
     # Queries the window manager for the currently active desktop.
@@ -379,6 +386,16 @@ class Probe:
         if self.get_display().has_extension('XINERAMA'):
             return True
         return False
+    
+    #
+    # Reports if the window manager is running or not
+    #
+    def is_wm_running(self):
+        try:
+            PROBE.get_desktops()
+        except:
+            return False
+        return True
             
     #
     # I was using this method originally in the main event loop, but found it

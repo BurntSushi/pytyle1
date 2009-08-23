@@ -200,11 +200,15 @@ class State:
         activeid = PROBE.get_active_window_id()
         State._DESKTOP = State.get_desktops()[PROBE.get_desktop()]        
                 
-        for screen in State._DESKTOP.screens.values():
-            if activeid in screen.windows:
-                State._DESKTOP.SCREEN = screen
-                State._DESKTOP.SCREEN.set_active(screen.windows[activeid])
-                break
+        if not activeid:
+            if not State._DESKTOP.SCREEN:
+                State._DESKTOP.SCREEN = State._DESKTOP.screens[0]
+        else:
+            for screen in State._DESKTOP.screens.values():
+                if activeid in screen.windows:
+                    State._DESKTOP.SCREEN = screen
+                    State._DESKTOP.SCREEN.set_active(screen.windows[activeid])
+                    break
             
     #
     # Similar to scan_new_windows, except it returns all windows reported by
