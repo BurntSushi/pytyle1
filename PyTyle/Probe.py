@@ -185,10 +185,12 @@ class Probe:
             for i in range(len(screens)):
                 screen = screens[i]
                 ret.append({'id': i, 'x': screen.x, 'y': screen.y, 'width': screen.width, 'height': screen.height})
-            return ret
-        else:
+                
+        if not ret:
             resolution = self.get_root().get_full_property(self.atom("_NET_DESKTOP_GEOMETRY"), 0).value
-            return [{'id': 0, 'x': 0, 'y': 0, 'width': resolution[0], 'height': resolution[1]}]
+            ret = [{'id': 0, 'x': 0, 'y': 0, 'width': resolution[0], 'height': resolution[1]}]
+            
+        return ret
         
     #
     # This will query the window manager for all necessary information for the

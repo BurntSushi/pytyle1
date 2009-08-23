@@ -23,6 +23,7 @@ from distutils.core import setup
 try:
     from Xlib.display import Display
     from Xlib import X, XK, Xatom, Xutil, protocol
+    from Xlib.ext import xinerama
 except:
     print ''
     print 'PyTyle requires the Python X Library'
@@ -33,7 +34,7 @@ setup(
       name = "pytyle",
       author = "Andrew Gallant",
       author_email = "andrew@pytyle.com",
-      version = "0.2",
+      version = "0.3",
       license = "GPL",
       description = "A manual tiling manager for EWMH compliant window managers",
       long_description = "See README",
