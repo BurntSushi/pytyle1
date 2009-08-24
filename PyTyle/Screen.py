@@ -93,10 +93,11 @@ class Screen:
     #       set active window.
     #
     def get_active(self):
-        if not self._active and not self.windows:
+        wins = self.get_tiler().storage.get_all()
+        if not self._active and not wins:
             self._active = None
-        elif self.windows and (not self._active or self._active.hidden or self._active.screen.id != self.id or not self._active.lives()):
-            self._active = self.get_tiler().storage.get_all()[0]
+        elif wins and (not self._active or self._active.hidden or self._active.screen.id != self.id or not self._active.lives()):
+            self._active = wins[0]
         elif not self.windows and self._active.screen.id != self.id:
             self._active = None
             
