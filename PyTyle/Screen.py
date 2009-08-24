@@ -98,7 +98,7 @@ class Screen:
             self._active = None
         elif wins and (not self._active or self._active.hidden or self._active.screen.id != self.id or not self._active.lives()):
             self._active = wins[0]
-        elif not self.windows and self._active.screen.id != self.id:
+        elif not wins and self._active.screen.id != self.id:
             self._active = None
             
         return self._active

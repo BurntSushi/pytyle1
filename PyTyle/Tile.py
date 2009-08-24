@@ -194,13 +194,16 @@ class Tile:
                 
         for screen in self.screen.desktop.screens.values():
             if screen_num == screen.id:
-                self.screen.delete_window(self.screen.get_active())
-                screen.add_window(self.screen.get_active())
+                add = self.screen.get_active()
+                self.screen.delete_window(add)
+                self.storage.remove(add)
+                screen.add_window(add)
+                screen.get_tiler().storage.add(add)
                 
                 if not screen.is_tiling():
-                    self.screen.get_active().resize(screen.x, screen.y, self.screen.get_active().width, self.screen.get_active().height)
+                    add.resize(screen.x, screen.y, add.width, add.height)
                 
-                self.screen.get_active().screen = screen
+                add.screen = screen
                 self.screen.get_active().activate()
     
     #
