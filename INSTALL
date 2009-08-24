@@ -27,3 +27,8 @@ PyTyle is meant to run in the background, so run it like so:
     
 You may want to add the above command to your ~/.xinitrc or
 another startup script.
+
+After PyTyle has been executed for the first time, it will create a
+configuration file in your XDG_CONFIG_HOME/pytyle/ directory (usually
+~/.config/pytyle) called pytylerc. The comments in the configuration
+file will explain everything.

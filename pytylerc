@@ -190,7 +190,7 @@ Config.KEYMAP = {
                  # unpredictable. I'll be working on this soon.
                  'Alt-X': Tile.max_all,
                  
-                 # This will restore (or minimize) all windows on the
+                 # This will restore (or unmaximize) all windows on the
                  # screen that PyTyle is managing.
                  'Alt-S': Tile.restore_all,
                  

@@ -47,7 +47,7 @@ possibly Event.py. No other files interface with python-xlib.
 """
 
 # Some basics...
-import time, sys, os, shutil, distutils.sysconfig
+import time, sys, os, shutil, distutils.sysconfig, traceback
 
 # What we need.
 from PyTyle.Config import Config
@@ -71,14 +71,22 @@ if not PROBE.is_wm_running():
 # Very easy to use Python as a config file...
 # Should I change it to a more traditional config?  
 try:
-    config_file = "%s/.pytylerc" % os.environ['HOME']
+    config_path = os.getenv('XDG_CONFIG_HOME')
+    if not config_path:
+        config_path = os.getenv('HOME') + '/.config'
+    config_path += '/pytyle'
+    config_file = "%s/pytylerc" % config_path
+
     if not os.access(config_file, os.F_OK | os.R_OK):
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
         shutil.copyfile("%s/PyTyle/pytylerc" % (distutils.sysconfig.get_python_lib()), config_file)
          
     if os.access(config_file, os.F_OK | os.R_OK):
         execfile(config_file)
 except:
     print >> sys.stderr, "Could not write configuration file to home directory and load it. Exiting!"
+    print >> sys.stderr, traceback.format_exc()
     sys.exit(0)
     
 # initialize the tilers dynamically, so all we need to do
@@ -133,8 +141,7 @@ while True:
             Tile.dispatch(State.get_desktop().SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
         except:
             print >> sys.stderr, "Could not complete key press request"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, traceback.format_exc()
             continue
         
     # If a window receives focus or changes to another
@@ -153,8 +160,7 @@ while True:
             Window.load_new_windows()
         except:
             print >> sys.stderr, "Could not tile new window - could be a popup that disappear"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, traceback.format_exc()
             continue
         
         try:
@@ -164,8 +170,7 @@ while True:
                     win.delete()
         except:
             print >> sys.stderr, "Could not properly handle window destruction"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, traceback.format_exc()
             continue
         
     # A window changes when it's resized/moved, or when its
@@ -183,8 +188,7 @@ while True:
                 State.get_windows()[e.get_window_id()].refresh()
         except:
             print >> sys.stderr, "Could not properly handle window changing event (moved/resized/desktop change)"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, traceback.format_exc()
             
     # If a window's state changes, we need to find it in PyTyle
     # and refresh it. Refresh will handle whether or not the
@@ -195,8 +199,7 @@ while True:
                 State.get_windows()[e.get_window_id()].refresh()
         except:
             print >> sys.stderr, "Could not properly handle window state event (iconified?)"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n'
+            print >> sys.stderr, traceback.format_exc()
             
     # Detects if the "_NET_WORKAREA" property changed.
     # Meaning the number of screens changed probably, so
@@ -209,5 +212,4 @@ while True:
             State.reload_active()
         except:
             print >> sys.stderr, "Could not properly handle screen change"
-            print >> sys.stderr, sys.exc_info()
-            print >> sys.stderr, '\n' 
+            print >> sys.stderr, traceback.format_exc() 
