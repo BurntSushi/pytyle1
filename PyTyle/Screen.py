@@ -28,6 +28,7 @@ enabled/disable, and of course, its current tiling algorithm.
 
 from PyTyle.Config import Config
 from PyTyle.State import State
+from PyTyle.Debug import DEBUG
 
 from PyTyle.Window import *
 
@@ -58,10 +59,9 @@ class Screen:
     # call untile, it will not disable tiling. (It will however, resize the
     # windows back to their original state- is that good behavior?)
     def disable_tiling(self):
-        print "What is going on..."
-        print State.get_desktop()
-        print self.get_tiler().storage
-        print ''
+        DEBUG.write("Tiling disabled for Screen %d" % self.id)
+        DEBUG.write(State.get_desktop())
+        DEBUG.write(self.get_tiler().storage)
         self._tiling = False
         
     #
@@ -95,13 +95,10 @@ class Screen:
     def get_active(self):
         if not self._active and not self.windows:
             self._active = None
-        elif self.windows and (not self._active or (self._active.screen.id != self.id)):
-            self._active = self.windows.values()[0]
+        elif self.windows and (not self._active or self._active.hidden or self._active.screen.id != self.id or not self._active.lives()):
+            self._active = self.get_tiler().storage.get_all()[0]
         elif not self.windows and self._active.screen.id != self.id:
             self._active = None
-            
-        if self.windows and not self._active.lives():
-            self._active = self.windows.values()[0]
             
         return self._active
     

@@ -42,6 +42,8 @@ import sys
 
 from PyTyle.Config import Config
 from PyTyle.State import State
+from PyTyle.Debug import DEBUG
+import traceback
 
 from PyTyle.TileStorage import TileStorage
 

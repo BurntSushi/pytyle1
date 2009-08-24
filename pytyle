@@ -53,6 +53,7 @@ import time, sys, os, shutil, distutils.sysconfig, traceback
 from PyTyle.Config import Config
 from PyTyle.State import State
 from PyTyle.Probe import PROBE
+from PyTyle.Debug import DEBUG
 from PyTyle.Desktop import Desktop
 from PyTyle.Window import Window
 from PyTyle.Event import Event
@@ -85,131 +86,140 @@ try:
     if os.access(config_file, os.F_OK | os.R_OK):
         execfile(config_file)
 except:
-    print >> sys.stderr, "Could not write configuration file to home directory and load it. Exiting!"
-    print >> sys.stderr, traceback.format_exc()
+    DEBUG.write("Could not write configuration file to home directory and load it. Exiting!")
+    DEBUG.write(traceback.format_exc())
     sys.exit(0)
     
-# initialize the tilers dynamically, so all we need to do
-# is add a tiler to Tilers, and add it to the configuration
-for module in Config.MISC['tilers']:
-    tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
-    Config.TILERS[module] = tmp.CLASS
+try:
+    # initialize the tilers dynamically, so all we need to do
+    # is add a tiler to Tilers, and add it to the configuration
+    for module in Config.MISC['tilers']:
+        tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
+        Config.TILERS[module] = tmp.CLASS
+        
+    # Initialize hot keys...
+    # See also, grab_key in Event.py
+    State.register_hotkeys()
+        
+    # Load all the desktops. This will fetch a list
+    # of desktops from the window manager, instantiate
+    # each of them (which also initializes the screens),
+    # and finally sets the tilers for each screen.
+    Desktop.load_desktops()
     
-# Initialize hot keys...
-# See also, grab_key in Event.py
-State.register_hotkeys()
+    # Scan for new (this is init, so all) windows, and
+    # loads them up with Window.load_window.
+    # load_window queries for window information, decides
+    # which screen a window is on, etc. It may also *NOT*
+    # load the given window if it decides its a popup.
+    Window.load_new_windows()
     
-# Load all the desktops. This will fetch a list
-# of desktops from the window manager, instantiate
-# each of them (which also initializes the screens),
-# and finally sets the tilers for each screen.
-Desktop.load_desktops()
-
-# Scan for new (this is init, so all) windows, and
-# loads them up with Window.load_window.
-# load_window queries for window information, decides
-# which screen a window is on, etc. It may also *NOT*
-# load the given window if it decides its a popup.
-Window.load_new_windows()
-
-# Asks the window manager for the currently active
-# desktop and window, and updates the State
-# accordingly (current desktop, current screen,
-# and current window).
-State.reload_active()
-
-# Stall and await orders...
-while True:
-    # This is our queue of tilings that we need to flush.
-    # Screens are queued for tiling when windows change,
-    # disappear, popup, etc. We almost never make direct
-    # calls to the Tile.tile method, and instead "tell"
-    # the screen that it needs to be retiled.
-    if State.queue_has_screens():
-        while State.queue_has_screens():
-            screen = State.dequeue_screen()
-            Tile.dispatch(screen.get_tiler(), Tile.tile)
-        time.sleep(Config.MISC['timeout'])
-        
-    # This loads up the next event.
-    e = Event()
+    # Asks the window manager for the currently active
+    # desktop and window, and updates the State
+    # accordingly (current desktop, current screen,
+    # and current window).
+    State.reload_active()
     
-    # If the event is a key press, we need to call our
-    # dispatcher to run the proper tiling action.
-    if e.is_keypress():
-        try:
-            Tile.dispatch(State.get_desktop().SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
-        except:
-            print >> sys.stderr, "Could not complete key press request"
-            print >> sys.stderr, traceback.format_exc()
-            continue
-        
-    # If a window receives focus or changes to another
-    # desktop, then we need to reload the State with
-    # the proper active window.
-    elif e.is_focus_in() or e.is_desktop_change():
-        time.sleep(Config.MISC['timeout'])
-        State.reload_active()
-        
-    # If the window manager's client list changes, then
-    # we need to add or remove a window
-    elif e.is_windowlist_change():
-        time.sleep(Config.MISC['timeout'])
-        
-        try:
-            Window.load_new_windows()
-        except:
-            print >> sys.stderr, "Could not tile new window - could be a popup that disappear"
-            print >> sys.stderr, traceback.format_exc()
-            continue
-        
-        try:
-            newwins = State.scan_all_windows()
-            for win in State.get_windows().values():
-                if long(win.id, 0) not in newwins:
-                    win.delete()
-        except:
-            print >> sys.stderr, "Could not properly handle window destruction"
-            print >> sys.stderr, traceback.format_exc()
-            continue
-        
-    # A window changes when it's resized/moved, or when its
-    # desktop property changes. In those cases, we want to
-    # "refresh" the window with its real and current state.
-    #
-    # Note: Window.refresh() will do only as much work as
-    # is needed. It is guaranteed to query X for the current
-    # window information, but from there, it will selectively
-    # determine if screen(s) need updating, or if we need
-    # to reload PyTyle's State.
-    elif e.is_window_change():
-        try:       
-            if e.get_window_id() in State.get_windows():
-                State.get_windows()[e.get_window_id()].refresh()
-        except:
-            print >> sys.stderr, "Could not properly handle window changing event (moved/resized/desktop change)"
-            print >> sys.stderr, traceback.format_exc()
+    # Stall and await orders...
+    while True:
+        # This is our queue of tilings that we need to flush.
+        # Screens are queued for tiling when windows change,
+        # disappear, popup, etc. We almost never make direct
+        # calls to the Tile.tile method, and instead "tell"
+        # the screen that it needs to be retiled.
+        if State.queue_has_screens():
+            while State.queue_has_screens():
+                screen = State.dequeue_screen()
+                Tile.dispatch(screen.get_tiler(), Tile.tile)
+            time.sleep(Config.MISC['timeout'])
             
-    # If a window's state changes, we need to find it in PyTyle
-    # and refresh it. Refresh will handle whether or not the
-    # screen needs to be re-tiled.
-    elif e.is_state_change():        
-        try:
-            if e.get_window_id() in State.get_windows():
-                State.get_windows()[e.get_window_id()].refresh()
-        except:
-            print >> sys.stderr, "Could not properly handle window state event (iconified?)"
-            print >> sys.stderr, traceback.format_exc()
+        # This loads up the next event.
+        e = Event()
+        
+        # If the event is a key press, we need to call our
+        # dispatcher to run the proper tiling action.
+        if e.is_keypress():
+            try:
+                Tile.dispatch(State.get_desktop().SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
+            except:
+                DEBUG.write("Could not complete key press request")
+                DEBUG.write(traceback.format_exc())
             
-    # Detects if the "_NET_WORKAREA" property changed.
-    # Meaning the number of screens changed probably, so
-    # we need to refresh our image of the current State.
-    elif e.is_screen_change():
-        try:
-            State.wipe()
-            Desktop.load_desktops()
-            Window.load_new_windows()
+        # If a window receives focus or changes to another
+        # desktop, then we need to reload the State with
+        # the proper active window.
+        elif e.is_focus_in() or e.is_desktop_change():
+            time.sleep(Config.MISC['timeout'])
             State.reload_active()
-        except:
-            print >> sys.stderr, "Could not properly handle screen change"
-            print >> sys.stderr, traceback.format_exc() 
+            
+        # If the window manager's client list changes, then
+        # we need to add or remove a window
+        elif e.is_windowlist_change():
+            time.sleep(Config.MISC['timeout'])
+            
+            try:
+                Window.load_new_windows()
+            except:
+                DEBUG.write("Could not tile new window - could be a popup that disappear")
+                DEBUG.write(traceback.format_exc())
+                continue
+            
+            try:
+                newwins = State.scan_all_windows()
+                for win in State.get_windows().values():
+                    if long(win.id, 0) not in newwins:
+                        win.delete()
+            except:
+                DEBUG.write("Could not properly handle window destruction")
+                DEBUG.write(traceback.format_exc())
+                continue
+            
+        # A window changes when it's resized/moved, or when its
+        # desktop property changes. In those cases, we want to
+        # "refresh" the window with its real and current state.
+        #
+        # Note: Window.refresh() will do only as much work as
+        # is needed. It is guaranteed to query X for the current
+        # window information, but from there, it will selectively
+        # determine if screen(s) need updating, or if we need
+        # to reload PyTyle's State.
+        elif e.is_window_change():
+            try:       
+                if e.get_window_id() in State.get_windows():
+                    State.get_windows()[e.get_window_id()].refresh()
+            except:
+                DEBUG.write("Could not properly handle window changing event (moved/resized/desktop change)")
+                DEBUG.write(traceback.format_exc())
+                
+        # If a window's state changes, we need to find it in PyTyle
+        # and refresh it. Refresh will handle whether or not the
+        # screen needs to be re-tiled.
+        elif e.is_state_change():        
+            try:
+                if e.get_window_id() in State.get_windows():
+                    State.get_windows()[e.get_window_id()].refresh()
+            except:
+                DEBUG.write("Could not properly handle window state event (iconified?)")
+                DEBUG.write(traceback.format_exc())
+                
+        # Detects if the "_NET_DESKTOP_GEOMETRY" property changed.
+        # Meaning the number of screens changed probably, so
+        # we need to refresh our image of the current State.
+        elif e.is_screen_change():
+            DEBUG.write("Wiping the current state...")
+            
+            # We should wait a little bit longer here...
+            time.sleep(3)
+            
+            try:
+                State.wipe()
+                Desktop.load_desktops()
+                Window.load_new_windows()
+                State.reload_active()
+            except:
+                DEBUG.write("Could not properly handle screen change")
+                DEBUG.write(traceback.format_exc()) 
+except:
+    DEBUG.write("Fatal error")
+    DEBUG.write(traceback.format_exc())
+    sys.exit(0)

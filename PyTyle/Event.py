@@ -134,7 +134,7 @@ class Event:
     # work with provided by the window manager.
     #
     def is_screen_change(self):
-        if self._event and self._event.type == X.PropertyNotify and (self._event.atom == PROBE.atom("_NET_WORKAREA") or self._event.atom == PROBE.atom("_NET_NUMBER_OF_DESKTOPS")):
+        if self._event and self._event.type == X.PropertyNotify and (self._event.atom == PROBE.atom("_NET_DESKTOP_GEOMETRY") or self._event.atom == PROBE.atom("_NET_NUMBER_OF_DESKTOPS")):
             return True
         return False
     

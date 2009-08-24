@@ -35,3 +35,9 @@ class Config:
     FILTER = {}
     TILING = {}
     TILERS = {}
+    
+    # Special flag to enable/disable debugging
+    #
+    # PRIVACY NOTE: This may log the titles of
+    # your windows!
+    DEBUG = False
