@@ -58,6 +58,10 @@ class Screen:
     # call untile, it will not disable tiling. (It will however, resize the
     # windows back to their original state- is that good behavior?)
     def disable_tiling(self):
+        print "What is going on..."
+        print State.get_desktop()
+        print self.get_tiler().storage
+        print ''
         self._tiling = False
         
     #
@@ -95,6 +99,10 @@ class Screen:
             self._active = self.windows.values()[0]
         elif not self.windows and self._active.screen.id != self.id:
             self._active = None
+            
+        if self.windows and not self._active.lives():
+            self._active = self.windows.values()[0]
+            
         return self._active
     
     #

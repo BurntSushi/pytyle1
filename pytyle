@@ -83,7 +83,7 @@ try:
         shutil.copyfile("%s/PyTyle/pytylerc" % (distutils.sysconfig.get_python_lib()), config_file)
          
     if os.access(config_file, os.F_OK | os.R_OK):
-        execfile('/home/andrew/workspace/PyTyle/src/pytylerc')
+        execfile(config_file)
 except:
     print >> sys.stderr, "Could not write configuration file to home directory and load it. Exiting!"
     print >> sys.stderr, traceback.format_exc()

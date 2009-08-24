@@ -155,6 +155,16 @@ class Window:
         State.reload_active()
         
     #
+    # Tests to see if this window is still alive.
+    #
+    def lives(self):
+        try:
+            PROBE.get_window_geometry(self.xobj)
+        except:
+            return False
+        return True
+        
+    #
     # Asks the window manager to maximize the window. It does not currently
     # resize to the max screen coordinates.
     #
