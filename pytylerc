@@ -197,7 +197,7 @@ Config.KEYMAP = {
                  # This is a debugging binding that shows some information
                  # about the current desktop. It's only useful if you're
                  # running PyTyle from a terminal.
-                 'Alt-D': Tile.query,
+                 #'Alt-D': Tile.query,
                  }
 
 

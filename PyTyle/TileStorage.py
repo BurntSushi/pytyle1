@@ -59,7 +59,7 @@ class TileStorage:
     # many masters are currently loaded in the storage.
     #
     def add(self, window):
-        if window.hidden or not self._filtered(window): return
+        if window.hidden: return
         
         if len(self._masters) < self.get_master_count():
             if window.id in self.get_slaves_by_id():
@@ -67,6 +67,26 @@ class TileStorage:
             self._add_master(window)
         else:
             self._add_slave(window)
+            
+    def add_top(self, window):
+        if window.hidden: return
+        
+        if len(self._masters) < self.get_master_count():
+            if window.id in self.get_slaves_by_id():
+                self._remove_slave(window)
+            self._add_top_master(window)
+        else:
+            self._add_top_slave(window)
+            
+    def add_bottom(self, window):
+        if window.hidden: return
+        
+        if len(self._masters) < self.get_master_count():
+            if window.id in self.get_slaves_by_id():
+                self._remove_slave(window)
+            self._add_bottom_master(window)
+        else:
+            self._add_bottom_slave(window)
         
     #
     # Decrements the number of masters allowed for this tiler. It cannot
@@ -207,28 +227,42 @@ class TileStorage:
         self._slaves.append(
                            (window.title.lower(), window)
                            )
-            
+    
     #
-    # Runs the filter from the configuration on the given window.
-    # Currently, the filter is running at the storage level (as
-    # you can see) rather than the window loading level. Looking at
-    # this now, it seems like filtering should be at the window
-    # loading level.
+    # Explicitly adds a master to the storage. Please do not
+    # call this directly, as it doesn't sync with the master
+    # count.
     #
-    # Note: This will check the window name, and class. It
-    # might be a bit haphazard, but has worked so far. (Namely,
-    # gmrun and gimp.)
+    def _add_bottom_master(self, window):
+        self._masters.append(
+                            (window.title.lower(), window)
+                            )
+        
     #
-    # Note 2: It used to check the window title. But I saw that
-    # Firefox doesn't set its download window as a pop up, and so
-    # I had to use "download" to make PyTyle ignore it. That could
-    # easily catch more windows than we want if we searched the
-    # titles.
-    def _filtered(self, window):
-        for winfilter in Config.FILTER:
-            if window.winclass[0].lower().find(winfilter.lower()) != -1 or window.winclass[1].lower().find(winfilter.lower()) != -1: # or window.title.lower().find(winfilter.lower()) != -1:
-                return False
-        return True
+    # Explicitly adds a slave to the storage.
+    #
+    def _add_bottom_slave(self, window):
+        self._slaves.append(
+                           (window.title.lower(), window)
+                           )
+        
+    #
+    # Explicitly adds a master to the storage. Please do not
+    # call this directly, as it doesn't sync with the master
+    # count.
+    #
+    def _add_top_master(self, window):
+        self._masters.insert(0,
+                            (window.title.lower(), window)
+                            )
+        
+    #
+    # Explicitly adds a slave to the storage.
+    #
+    def _add_top_slave(self, window):
+        self._slaves.insert(0,
+                           (window.title.lower(), window)
+                           )
     
     #
     # Explicitly removes a master from the storage.

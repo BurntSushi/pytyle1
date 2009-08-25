@@ -99,6 +99,14 @@ class Event:
         return ret
     
     #
+    # Reports whether this event is an active window changing event.
+    #
+    def is_active_change(self):
+        if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_ACTIVE_WINDOW"):
+            return True
+        return False
+    
+    #
     # Reports whether this event is a desktop changing event. This event is
     # sent from the root window. We use this to update the active window.
     # Although I am thinking of changing to listening for the

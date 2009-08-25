@@ -141,6 +141,7 @@ class Tile:
     #
     def _reset(self):
         self.storage = TileStorage()
+        self.cycleIndex = 0
         self.screen.needs_tiling()
         
     #
@@ -204,6 +205,10 @@ class Tile:
                     add.resize(screen.x, screen.y, add.width, add.height)
                 
                 add.screen = screen
+                print "Going to: %d, Staying on: %d" % (screen.id, self.screen.id)
+                print "Moved:", add
+                print "New active:", self.screen.get_active()
+                print '\n'
                 self.screen.get_active().activate()
     
     #
@@ -425,11 +430,11 @@ class Tile:
         all = self.storage.get_all_by_id()
         for window in self.screen.windows.values():
             if not window.id in all:
-                self.storage.add(window)
+                self.storage.add_top(window)
             else:
                 self.storage.try_to_promote(window)
                 
-        self.storage.sort()
+        #self.storage.sort()
         
     #
     # Simple method to switch two windows visually. It also takes care of

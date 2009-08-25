@@ -196,8 +196,18 @@ class State:
     # active desktop, screen, and window accordingly.
     #
     @staticmethod
-    def reload_active():
-        activeid = PROBE.get_active_window_id()
+    def reload_active(active = None, force = False):
+        if not active: 
+            activeid = PROBE.get_active_window_id()
+        else:
+            activeid = active.id
+            
+        # Check to make sure we need to probe for anything...
+        if not force and activeid and State._DESKTOP and State._DESKTOP.SCREEN:
+            current = State._DESKTOP.SCREEN.get_active()
+            if current and current.id == activeid:
+                return
+            
         State._DESKTOP = State.get_desktops()[PROBE.get_desktop()]        
                 
         if not activeid:

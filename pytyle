@@ -148,9 +148,13 @@ try:
         # If a window receives focus or changes to another
         # desktop, then we need to reload the State with
         # the proper active window.
-        elif e.is_focus_in() or e.is_desktop_change():
+        #elif e.is_focus_in() or e.is_desktop_change():
+        elif e.is_active_change():
+            State.reload_active() 
+        
+        elif e.is_desktop_change():
             time.sleep(Config.MISC['timeout'])
-            State.reload_active()
+            State.reload_active(None, True)
             
         # If the window manager's client list changes, then
         # we need to add or remove a window
@@ -206,6 +210,7 @@ try:
         # Meaning the number of screens changed probably, so
         # we need to refresh our image of the current State.
         elif e.is_screen_change():
+            print "Desktop geometry changed..."
             DEBUG.write("Wiping the current state...")
             
             # We should wait a little bit longer here...

@@ -99,7 +99,7 @@ class Probe:
     
     #
     # Queries the window manager for the currently active window. This is
-    # what is *always* used to fine the active window. We only rely on X events
+    # what is *always* used to find the active window. We only rely on X events
     # to tell us when to use this (since the events can come from the root
     # window, and thus give us unknown id's for any given window).
     #
@@ -208,7 +208,7 @@ class Probe:
     # changes- we want to know its new state. (i.e., hidden, resized, desktop
     # or screen changed, etc.)
     #
-    # Note: There is a lot that does into this method, so please see the comments
+    # Note: There is a lot that goes into this method, so please see the comments
     # below as well.
     #
     # Note 2: We don't calculate which screen the window is on from here. We do
@@ -256,7 +256,7 @@ class Probe:
         # Note: This is obviously a hack. It would be better if we could
         # *account* for static gravity. Especially since static gravity
         # is set by the application itself, and if we don't let it have what
-        # it wants, we might get unexpect behavior. So far so good, though.
+        # it wants, we might get unexpected behavior. So far so good, though.
         # If anyone has a better understanding of gravity than I do (that is, 
         # beyond the usual man page), then I'd love to talk to you.
         norm_hints = win.get_wm_normal_hints()
@@ -399,7 +399,7 @@ class Probe:
             
     #
     # I was using this method originally in the main event loop, but found it
-    # to be necessary after I polished up the get_window method and queried
+    # to be unnecessary after I polished up the get_window method and queried
     # for information about a window being a transient, along with whether or
     # not it was hidden. However, this method could still be potentially useful,
     # although it is not currently being used.
@@ -417,7 +417,7 @@ class Probe:
     #
     def window_activate(self, win):
         win.set_input_focus(X.RevertToNone, X.CurrentTime)
-        win.configure(stack_mode=X.Above)
+        self.window_stackabove(win)
         self.get_display().flush()
      
     #
@@ -512,6 +512,18 @@ class Probe:
         self.window_reset(win)
         win.configure(x=x, y=y, width=width, height=height)
         self.get_display().flush()
+        
+    #
+    # Puts window at the top of the stack.
+    #
+    def window_stackabove(self, win):
+        win.configure(stack_mode=X.Above)
+        
+    #
+    # Puts window at the bottom of the stack.
+    #
+    def window_stackbelow(self, win):
+        win.configure(stack_mode=X.Below)
  
     #
     # Stop listening to a window. PyTyle does not currently use this,

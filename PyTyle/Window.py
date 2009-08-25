@@ -39,6 +39,7 @@ windows in State?)
         windows are kept. This will *not* include hidden windows.
 """
 
+from PyTyle.Config import Config
 from PyTyle.State import State
 from PyTyle.Probe import PROBE
 
@@ -75,16 +76,14 @@ class Window:
         attrs = PROBE.get_window_by_id(window_id)
         if not attrs['popup'] and attrs['desktop'] in State.get_desktops():
             for screen in State.get_desktops()[attrs['desktop']].screens.values():
-                #print screen
-                #print "Window X: %d, Y: %d, Good? %s" % (attrs['x'], attrs['y'], screen.is_on_screen(attrs['x'], attrs['y']))
-                #print ' '
                 if screen.is_on_screen(attrs['x'], attrs['y']):
                     win = Window(screen, attrs)
-                    screen.add_window(win)
-                    screen.needs_tiling()
-                    
-                    if win.id == PROBE.get_active_window_id():
-                        win.activate()
+                    if not win.filtered():
+                        screen.add_window(win)
+                        screen.needs_tiling()
+                        
+                        if win.id == PROBE.get_active_window_id():
+                            win.activate()
     
     
     #------------------------------------------------------------------------------
@@ -120,7 +119,7 @@ class Window:
             return
         
         PROBE.window_activate(self.xobj)
-        State.reload_active()
+        State.reload_active(self)
         
     #
     # Attempts to add decorations to the window. It's currently only working
@@ -153,6 +152,30 @@ class Window:
         self.screen.delete_window(self)
         self.screen.needs_tiling()
         State.reload_active()
+        
+    #
+    # Runs the filter from the configuration on the given window.
+    #
+    # Note: This will check the window name, and class. It
+    # might be a bit haphazard, but has worked so far. (Namely,
+    # gmrun and gimp.)
+    #
+    # Note 2: It used to check the window title. But I saw that
+    # Firefox doesn't set its download window as a pop up, and so
+    # I had to use "download" to make PyTyle ignore it. That could
+    # easily catch more windows than we want if we searched the
+    # titles.
+    #
+    # Note 3: VLC (and quite probably, some other programs) aren't
+    # reporting a proper class. I need something else to search by.
+    #
+    def filtered(self):
+        if self.winclass:
+            for winfilter in Config.FILTER:
+                if self.winclass[0].lower().find(winfilter.lower()) != -1 or self.winclass[1].lower().find(winfilter.lower()) != -1: # or window.title.lower().find(winfilter.lower()) != -1:
+                    return True
+                
+        return False
         
     #
     # Tests to see if this window is still alive.
@@ -296,6 +319,18 @@ class Window:
         self.origy = geom['y']
         self.origwidth = geom['width']
         self.origheight = geom['height']
+        
+    #
+    # Lowers a window. Only use this if you're changing the stacking order.
+    #
+    def stack_lower(self):
+        PROBE.window_stackbelow(self.xobj)
+        
+    #
+    # Raises a window. Only use this if you're changing the stacking order.
+    #
+    def stack_raise(self):
+        PROBE.window_stackabove(self.xobj)
         
     #
     # Simply updates all the window attributes.

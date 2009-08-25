@@ -46,6 +46,10 @@ class TileDefault (Tile):
         if not slaves or not masters:
             return
         
+        # Might be a little high...
+        if self.cycleIndex >= len(slaves):
+            self.cycleIndex = len(slaves) - 1
+        
         # use the index first to fetch the window to cycle
         self.help_switch(masters[0], slaves[self.cycleIndex])
         self.storage.get_masters()[0].activate()
