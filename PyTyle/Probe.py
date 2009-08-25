@@ -281,13 +281,18 @@ class Probe:
         
         # If a window is hidden, we don't want to tile it. (Or more importantly,
         # we don't want PyTyle to *think* there is a window that's there and
-        # isn't.)
+        # isn't.) Check for dock/panel/skip taskbar, etc...
+        #
+        # Note: We check both the "_NET_WM_STATE" (different from "WM_STATE" which
+        # tells us about iconification and stuff) and the "_NET_WM_WINDOW_TYPE".
         state = win.get_full_property(self.atom("_NET_WM_STATE"), Xatom.ATOM)
+        dock = win.get_full_property(self.atom("_NET_WM_WINDOW_TYPE"), Xatom.ATOM)
+        hidden = False
             
-        if state and self.atom("_NET_WM_STATE_HIDDEN") in state.value:
+        if state and (self.atom("_NET_WM_STATE_HIDDEN") in state.value or self.atom("_NET_WM_STATE_SKIP_TASKBAR") in state.value or self.atom("_NET_WM_STATE_SKIP_PAGER") in state.value):
             hidden = True
-        else:
-            hidden = False
+        if dock and (self.atom("_NET_WM_WINDOW_TYPE_DOCK") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_TOOLBAR") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_MENU") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_SPLASH") in dock.value):
+            hidden = True        
         
         # Construct the window data structure. This is passed to the
         # update_attributes method.
