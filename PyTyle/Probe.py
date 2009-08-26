@@ -37,6 +37,7 @@ and a lot more.
 from Xlib.display import Display
 from Xlib import X, XK, Xatom, Xutil, protocol
 from Xlib.ext import xinerama
+from PyTyle.Config import Config
 import sys, math
 
 class Probe:
@@ -228,24 +229,31 @@ class Probe:
     #
     def get_viewports(self):
         geom = self.get_root().get_full_property(self.atom("_NET_DESKTOP_GEOMETRY"), Xatom.CARDINAL)
-        workarea = self.get_root().get_full_property(self.atom("_NET_WORKAREA"), Xatom.CARDINAL)
-        
-        if not geom or not workarea:
-            return None
-        
-        verts = int(math.floor(geom.value[1] / workarea.value[3]))
-        horz = int(math.floor(geom.value[0] / workarea.value[2]))
-        inc = 0
-        viewports = []
-        
-        for h in range(verts):
-            for v in range(horz):
-                viewports.append({
-                                  'id': inc, 
-                                  'x': (geom.value[0] / horz) * h,
-                                  'y': (geom.value[1] / verts) * v
-                                  })
-                inc += 1
+        if self.is_compiz():
+            workarea = self.get_root().get_full_property(self.atom("_NET_WORKAREA"), Xatom.CARDINAL)
+            
+            if not geom or not workarea:
+                return None
+            
+            verts = int(math.floor(geom.value[1] / workarea.value[3]))
+            horz = int(math.floor(geom.value[0] / workarea.value[2]))
+            inc = 0
+            viewports = []
+            
+            for h in range(verts):
+                for v in range(horz):
+                    viewports.append({
+                                      'id': inc, 
+                                      'x': (geom.value[0] / horz) * h,
+                                      'y': (geom.value[1] / verts) * v
+                                      })
+                    inc += 1
+        else:
+            viewports = [{
+                          'id': 0,
+                          'x': 0,
+                          'y': 0
+                          }]
                 
         return viewports 
         
@@ -452,9 +460,7 @@ class Probe:
     # Checks to see if Compiz is running. It needs unique attention.
     #
     def is_compiz(self):
-        if self.get_root().get_full_property(self.atom('_COMPIZ_SUPPORTING_DM_CHECK'), 0):
-            return True
-        return False
+        return Config.MISC['compiz']
     
     #
     # Reports if the window manager is running or not

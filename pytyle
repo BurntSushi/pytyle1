@@ -120,6 +120,8 @@ try:
     # and current window).
     State.reload_active()
     
+    print State.get_desktop()
+    
     # Stall and await orders...
     while True:
         # This is our queue of tilings that we need to flush.

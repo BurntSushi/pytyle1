@@ -48,8 +48,12 @@ class Viewport:
         self._SCREEN = None
         self.desktop = desktop 
         
-        self.width = self.desktop.width
-        self.height = self.desktop.height
+        if PROBE.is_compiz():
+            self.width = self.desktop.width
+            self.height = self.desktop.height
+        else:
+            self.width = self.desktop.resx
+            self.height = self.desktop.resy
         
         self.screens = {}
         self.load_screens()
@@ -97,4 +101,4 @@ class Viewport:
     # representations of desktop and window.
     #                
     def __str__(self):
-        return 'Viewport ' + str(self.id) + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', DESKTOP: ' + str(self.desktop.id) + ']'
+        return 'Viewport ' + str(self.id) + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', DESKTOP: ' + str(self.desktop.id) + ']'
