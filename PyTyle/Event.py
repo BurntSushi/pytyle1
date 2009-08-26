@@ -113,7 +113,7 @@ class Event:
     # _NET_ACTIVE_WINDOW instead. Will investigate more later.
     #
     def is_desktop_change(self):
-        if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_CURRENT_DESKTOP"):
+        if self._event and self._event.type == X.PropertyNotify and (self._event.atom == PROBE.atom("_NET_CURRENT_DESKTOP") or self._event.atom == PROBE.atom("_NET_DESKTOP_VIEWPORT")):
             return True
         return False
     

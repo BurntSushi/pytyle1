@@ -164,7 +164,7 @@ class Tile:
         if self.screen.id == screen_num:
             return
         
-        for screen in self.screen.desktop.screens.values():
+        for screen in self.screen.viewport.screens.values():
             if screen_num == screen.id:
                 if not screen.get_active():
                     return
@@ -193,7 +193,7 @@ class Tile:
         if self.screen.id == screen_num:
             return
                 
-        for screen in self.screen.desktop.screens.values():
+        for screen in self.screen.viewport.screens.values():
             if screen_num == screen.id:
                 add = self.screen.get_active()
                 self.screen.delete_window(add)
@@ -205,10 +205,6 @@ class Tile:
                     add.resize(screen.x, screen.y, add.width, add.height)
                 
                 add.screen = screen
-                print "Going to: %d, Staying on: %d" % (screen.id, self.screen.id)
-                print "Moved:", add
-                print "New active:", self.screen.get_active()
-                print '\n'
                 self.screen.get_active().activate()
     
     #
@@ -373,7 +369,7 @@ class Tile:
     # (Tentatively assigned the Alt-Q key binding.)
     #
     def _query(self):
-        print self.screen.desktop
+        print self.screen.viewport.desktop
         print self.storage
         
     

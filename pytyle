@@ -140,7 +140,7 @@ try:
         # dispatcher to run the proper tiling action.
         if e.is_keypress():
             try:
-                Tile.dispatch(State.get_desktop().SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
+                Tile.dispatch(State.get_desktop()._VIEWPORT._SCREEN.get_tiler(), None, e.get_keycode(), e.get_masks())
             except:
                 DEBUG.write("Could not complete key press request")
                 DEBUG.write(traceback.format_exc())

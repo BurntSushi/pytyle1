@@ -186,7 +186,10 @@ class State:
             modmask = PROBE.generate_modmask(mods)
             
             # Tell X we want to hear about it when this key is pressed...
-            PROBE.grab_key(keycode, modmask)
+            try:
+                PROBE.grab_key(keycode, modmask)
+            except:
+                print "Nada:", callback
             
             # Finally register the key with the dispatcher...            
             State.register_hotkey(keycode, modmask, callback)
@@ -203,22 +206,27 @@ class State:
             activeid = active.id
             
         # Check to make sure we need to probe for anything...
-        if not force and activeid and State._DESKTOP and State._DESKTOP.SCREEN:
-            current = State._DESKTOP.SCREEN.get_active()
+        if not force and activeid and State._DESKTOP and State._DESKTOP._VIEWPORT and State._DESKTOP._VIEWPORT._SCREEN:
+            current = State._DESKTOP._VIEWPORT._SCREEN.get_active()
             if current and current.id == activeid:
                 return
             
         State._DESKTOP = State.get_desktops()[PROBE.get_desktop()]        
                 
         if not activeid:
-            if not State._DESKTOP.SCREEN:
-                State._DESKTOP.SCREEN = State._DESKTOP.screens[0]
+            if not State._DESKTOP._VIEWPORT:
+                State._DESKTOP._VIEWPORT = State._DESKTOP.viewports[0]
+                
+            if not State._DESKTOP._VIEWPORT._SCREEN:
+                State._DESKTOP._VIEWPORT._SCREEN = State._DESKTOP._VIEWPORT.screens[0]
         else:
-            for screen in State._DESKTOP.screens.values():
-                if activeid in screen.windows:
-                    State._DESKTOP.SCREEN = screen
-                    State._DESKTOP.SCREEN.set_active(screen.windows[activeid])
-                    break
+            for viewport in State._DESKTOP.viewports.values():
+                for screen in viewport.screens.values():
+                    if activeid in screen.windows:
+                        State._DESKTOP._VIEWPORT = viewport
+                        State._DESKTOP._VIEWPORT._SCREEN = screen
+                        State._DESKTOP._VIEWPORT._SCREEN.set_active(screen.windows[activeid])
+                        break
             
     #
     # Similar to scan_new_windows, except it returns all windows reported by

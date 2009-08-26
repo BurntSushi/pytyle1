@@ -44,14 +44,14 @@ class Screen:
     #    2. Untiled state
     #    3. No tiler
     #
-    def __init__(self, desktop, attrs):
+    def __init__(self, viewport, attrs):
         self.update_attributes(attrs)
         self._active = None
         self._tile = None
         self._tiled = False
         self._tiling = False
         self.windows = {}
-        self.desktop = desktop
+        self.viewport = viewport
         
     #
     # Disables tiling for this screen. Essentially, this is called when the
@@ -59,9 +59,6 @@ class Screen:
     # call untile, it will not disable tiling. (It will however, resize the
     # windows back to their original state- is that good behavior?)
     def disable_tiling(self):
-        DEBUG.write("Tiling disabled for Screen %d" % self.id)
-        DEBUG.write(State.get_desktop())
-        DEBUG.write(self.get_tiler().storage)
         self._tiling = False
         
     #
@@ -125,17 +122,17 @@ class Screen:
     def get_workarea(self):
         # If we have one screen, look for a "Screen 0" config
         # and use it if it exists...
-        if len(self.desktop.screens) == 1:
+        if len(self.viewport.screens) == 1:
             if 0 in Config.WORKAREA:
                 x = self.x + Config.WORKAREA[self.id]['left']
                 y = self.y + Config.WORKAREA[self.id]['top']
                 height = self.height - Config.WORKAREA[self.id]['bottom'] + Config.WORKAREA[self.id]['top']
                 width = self.width - Config.WORKAREA[self.id]['right'] + Config.WORKAREA[self.id]['left']
             else:
-                x = self.desktop.x
-                y = self.desktop.y
-                height = self.desktop.height
-                width = self.desktop.width
+                x = self.viewport.x
+                y = self.viewport.y
+                height = self.viewport.height
+                width = self.viewport.width
         else:
             x = self.x
             y = self.y
@@ -256,7 +253,7 @@ class Screen:
         
     #
     # String representation of the current screen. See also the string
-    # representations of desktop and window.
+    # representations of desktop, viewport, and window.
     #                
     def __str__(self):
-        return 'Screen ' + str(self.id) + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', DESKTOP: ' + str(self.desktop.id) + ']'
+        return 'Screen ' + str(self.id) + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', VIEWPORT: ' + str(self.viewport.id) + ', DESKTOP: ' + str(self.viewport.desktop.id) + ']'

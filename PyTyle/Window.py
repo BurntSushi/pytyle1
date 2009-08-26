@@ -75,15 +75,17 @@ class Window:
     def load_window(window_id):
         attrs = PROBE.get_window_by_id(window_id)
         if not attrs['popup'] and attrs['desktop'] in State.get_desktops():
-            for screen in State.get_desktops()[attrs['desktop']].screens.values():
-                if screen.is_on_screen(attrs['x'], attrs['y']):
-                    win = Window(screen, attrs)
-                    if not win.filtered():
-                        screen.add_window(win)
-                        screen.needs_tiling()
-                        
-                        if win.id == PROBE.get_active_window_id():
-                            win.activate()
+            for viewport in State.get_desktops()[attrs['desktop']].viewports.values():
+                if viewport.is_on_viewport(attrs['x'], attrs['y']):
+                    for screen in viewport.screens.values():
+                        if screen.is_on_screen(attrs['x'], attrs['y']):
+                            win = Window(screen, attrs)
+                            if not win.filtered():
+                                screen.add_window(win)
+                                screen.needs_tiling()
+                                
+                                if win.id == PROBE.get_active_window_id():
+                                    win.activate()
     
     
     #------------------------------------------------------------------------------
@@ -204,7 +206,8 @@ class Window:
     #
     def refresh(self):
         oldscreen = self.screen
-        olddesk = self.screen.desktop
+        oldviewport = oldscreen.viewport
+        olddesk = oldviewport.desktop
         oldstate = self.hidden
         update = PROBE.get_window(self.xobj)
         
@@ -225,14 +228,16 @@ class Window:
         update['height'] = self.height
         self.update_attributes(update)
         
-        if olddesk.id != self.desktop or (olddesk.id == self.desktop and not oldscreen.is_on_screen(update['x'], update['y'])):
-            for screen in State.get_desktops()[self.desktop].screens.values():
-                if screen.is_on_screen(update['x'], update['y']):                  
-                    oldscreen.delete_window(self)
-                    screen.add_window(self)
-                    screen.needs_tiling()
-                    oldscreen.needs_tiling()
-                    self.screen = screen
+        if olddesk.id != self.desktop or not oldviewport.is_on_viewport(update['x'], update['y']) or not oldscreen.is_on_screen(update['x'], update['y']):
+            for viewport in State.get_desktops()[self.desktop].viewports.values():
+                if viewport.is_on_viewport(update['x'], update['y']):
+                    for screen in viewport.screens.values():
+                        if screen.is_on_screen(update['x'], update['y']):                  
+                            oldscreen.delete_window(self)
+                            screen.add_window(self)
+                            screen.needs_tiling()
+                            oldscreen.needs_tiling()
+                            self.screen = screen
         elif oldstate != self.hidden:
             self.screen.needs_tiling()
                     
@@ -337,6 +342,8 @@ class Window:
     #
     def update_attributes(self, attrs):
         self.id = attrs['id']
+#        self.x = attrs['x']
+#        self.y = attrs['y']
         self.width = attrs['width']
         self.height = attrs['height']
         self.d_left = attrs['d_left']
@@ -355,4 +362,4 @@ class Window:
     # purposes. Also see the string representations of desktop and screen.
     #
     def __str__(self):
-        return self.title + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', DESKTOP: ' + str(self.screen.desktop.id) + ', SCREEN: ' + str(self.screen.id) + ']'
+        return self.title + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', DESKTOP: ' + str(self.screen.viewport.desktop.id) + ', VIEWPORT: ' + str(self.screen.viewport.id) + ', SCREEN: ' + str(self.screen.id) + ']'

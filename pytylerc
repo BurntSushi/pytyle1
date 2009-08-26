@@ -38,7 +38,7 @@ Config.MISC = {
                # This is a list of all available tilers. If a tiler
                # is not listed here, it cannot be used. They are
                # loaded when PyTyle starts.
-               'tilers': ['Vertical', 'Horizontal', 'Maximal'],
+               'tilers': ['Vertical', 'Horizontal', 'Maximal', 'Cascade'],
                
                # This timeout is used several times in the main event
                # loop. It is the amount of time we wait, for example,

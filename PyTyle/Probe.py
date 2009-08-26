@@ -37,7 +37,7 @@ and a lot more.
 from Xlib.display import Display
 from Xlib import X, XK, Xatom, Xutil, protocol
 from Xlib.ext import xinerama
-import sys
+import sys, math
 
 class Probe:
     #------------------------------------------------------------------------------
@@ -198,6 +198,56 @@ class Probe:
             ret = [{'id': 0, 'x': 0, 'y': 0, 'width': resolution[0], 'height': resolution[1]}]
             
         return ret
+    
+    #
+    # Retrieves the current viewport. This is necessary for resizing
+    # windows in managers like Compiz! Compiz thinks about windows
+    # *relative* to the current viewport, so whenever we resize in a
+    # window manager like that, we need to know the current viewport.
+    # 
+    def get_viewport(self):
+        viewport = self.get_root().get_full_property(self.atom("_NET_DESKTOP_VIEWPORT"), Xatom.CARDINAL)
+        if viewport and hasattr(viewport, 'value'):
+            return {'x': viewport.value[0], 'y': viewport.value[1]}
+        return None
+    
+    #
+    # Retrieves all available viewports. It uses some math trickery, but here's
+    # the general gist:
+    #    1. Ask the WM for the desktop geometry
+    #    2. Ask the WM for the workarea.
+    #    3. Divide the workarea into the desktop geometry, and floor it
+    #        A. floor(desktop_width / workarea_width)
+    #        B. floor(desktop_height / workarea_height)
+    #        NOTE: We floor because the workarea might be smaller than the
+    #        screen resolutions (struts).
+    #    4. Calculations will give us number of horizontal and vertical
+    #       viewports, respectively.
+    #    5. Assigns id's: go vertical first, then wind back up to the
+    #       next column.
+    #
+    def get_viewports(self):
+        geom = self.get_root().get_full_property(self.atom("_NET_DESKTOP_GEOMETRY"), Xatom.CARDINAL)
+        workarea = self.get_root().get_full_property(self.atom("_NET_WORKAREA"), Xatom.CARDINAL)
+        
+        if not geom or not workarea:
+            return None
+        
+        verts = int(math.floor(geom.value[1] / workarea.value[3]))
+        horz = int(math.floor(geom.value[0] / workarea.value[2]))
+        inc = 0
+        viewports = []
+        
+        for h in range(verts):
+            for v in range(horz):
+                viewports.append({
+                                  'id': inc, 
+                                  'x': (geom.value[0] / horz) * h,
+                                  'y': (geom.value[1] / verts) * v
+                                  })
+                inc += 1
+                
+        return viewports 
         
     #
     # This will query the window manager for all necessary information for the
@@ -353,8 +403,14 @@ class Probe:
         wintrans.x = -wintrans.x
         wintrans.y = -wintrans.y
         
-        # This is for compiz... looks like we don't need to translate
-        #wintrans = wingeom
+        # This is for compiz (and any other viewport-style WM?)... 
+        # looks like we don't need to translate
+        if self.is_compiz():
+            viewport = self.get_viewport()
+            if viewport:        
+                wintrans = wingeom
+                wintrans.x += viewport['x']
+                wintrans.y += viewport['y']
         
         return {'x': wintrans.x, 'y': wintrans.y, 'width': wingeom.width, 'height': wingeom.height}
     
@@ -389,6 +445,14 @@ class Probe:
     #
     def has_xinerama(self):
         if self.get_display().has_extension('XINERAMA'):
+            return True
+        return False
+    
+    #
+    # Checks to see if Compiz is running. It needs unique attention.
+    #
+    def is_compiz(self):
+        if self.get_root().get_full_property(self.atom('_COMPIZ_SUPPORTING_DM_CHECK'), 0):
             return True
         return False
     
@@ -438,7 +502,7 @@ class Probe:
     def window_add_decorations(self, win):
         # Doesn't seem to be working...
         #win.change_property(self.atom("_MOTIF_WM_HINTS"), self.atom("_MOTIF_WM_HINTS"), 32, [0x2, 0, 1, 0, 0])
-        self._sendEvent(win, self.atom("_NET_WM_STATE"), [0, self.atom("_OB_WM_STATE_UNDECORATED")])
+        self._send_event(win, self.atom("_NET_WM_STATE"), [0, self.atom("_OB_WM_STATE_UNDECORATED")])
         self.get_display().flush()
         
     #
@@ -448,7 +512,8 @@ class Probe:
     # a key binding to close a window).
     #
     def window_close(self, win):
-        win.destroy()
+        #win.destroy()
+        self._send_event(win, self.atom("_NET_CLOSE_WINDOW"), [X.CurrentTime])
         self.get_display().flush()
      
     #
@@ -473,7 +538,7 @@ class Probe:
     # root window for this. (Or any other _NET_WM_STATE_* property.)
     #
     def window_maximize(self, win):
-        self._sendEvent(win, self.atom("_NET_WM_STATE"), [1, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")])
+        self._send_event(win, self.atom("_NET_WM_STATE"), [1, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")])
         #win.change_property(self.atom("_NET_WM_STATE"), Xatom.ATOM, 32, [1, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")]) 
         self.get_display().flush()
         
@@ -483,7 +548,7 @@ class Probe:
     def window_remove_decorations(self, win):
         # Doesn't seem to be working...
         #win.change_property(self.atom("_MOTIF_WM_HINTS"), self.atom("_MOTIF_WM_HINTS"), 32, [0x2, 0, 0, 0, 0])
-        self._sendEvent(win, self.atom("_NET_WM_STATE"), [1, self.atom("_OB_WM_STATE_UNDECORATED")])
+        self._send_event(win, self.atom("_NET_WM_STATE"), [1, self.atom("_OB_WM_STATE_UNDECORATED")])
         self.get_display().flush()
         
     #
@@ -505,7 +570,7 @@ class Probe:
     # by the user (which then could not be resized).
     #
     def window_reset(self, win):
-        self._sendEvent(win, self.atom("_NET_WM_STATE"), [0, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")])
+        self._send_event(win, self.atom("_NET_WM_STATE"), [0, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")])
         #win.change_property(self.atom("_NET_WM_STATE"), Xatom.ATOM, 32, [0, self.atom("_NET_WM_STATE_MAXIMIZED_VERT"), self.atom("_NET_WM_STATE_MAXIMIZED_HORZ")])
         self.get_display().flush()        
     
@@ -515,6 +580,15 @@ class Probe:
     #
     def window_resize(self, win, x, y, width, height):
         self.window_reset(win)
+        
+        # This is for compiz (and any other viewport-style WM?)... 
+        # looks like we don't need to translate
+        if self.is_compiz():
+            viewport = self.get_viewport()
+            if viewport:        
+                x -= viewport['x']
+                y -= viewport['y']
+            
         win.configure(x=x, y=y, width=width, height=height)
         self.get_display().flush()
         
@@ -550,7 +624,7 @@ class Probe:
     #
     # Props to PyPanel for this little snippet.
     #
-    def _sendEvent(self, win, ctype, data, mask=None):
+    def _send_event(self, win, ctype, data, mask=None):
         data = (data + ([0] * (5 - len(data))))[:5]
         ev = protocol.event.ClientMessage(window=win, client_type=ctype, data=(32, (data)))
         self.get_root().send_event(ev, event_mask=X.SubstructureRedirectMask)

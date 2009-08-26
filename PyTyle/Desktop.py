@@ -30,7 +30,7 @@ from PyTyle.Config import Config
 from PyTyle.State import State
 from PyTyle.Probe import PROBE
 
-from PyTyle.Screen import *
+from PyTyle.Viewport import Viewport
 
 class Desktop:
     #------------------------------------------------------------------------------
@@ -50,13 +50,14 @@ class Desktop:
         # initialize all desktops and their associated windows
         for desk in PROBE.get_desktops().values():
             desktop = Desktop(desk)
-            for screen in desktop.screens.values():
-                if screen.id in Config.TILING and isinstance(Config.TILING[screen.id], dict) and desktop.id in Config.TILING[screen.id]:
-                    screen.set_tiler(Config.TILERS[Config.TILING[screen.id][desktop.id]])
-                elif screen.id in Config.TILING and not isinstance(Config.TILING[screen.id], dict):
-                    screen.set_tiler(Config.TILERS[Config.TILING[screen.id]])
-                else:
-                    screen.set_tiler(Config.TILERS[Config.TILING['default']])
+            for viewport in desktop.viewports.values():
+                for screen in viewport.screens.values():
+                    if screen.id in Config.TILING and isinstance(Config.TILING[screen.id], dict) and desktop.id in Config.TILING[screen.id]:
+                        screen.set_tiler(Config.TILERS[Config.TILING[screen.id][desktop.id]])
+                    elif screen.id in Config.TILING and not isinstance(Config.TILING[screen.id], dict):
+                        screen.set_tiler(Config.TILERS[Config.TILING[screen.id]])
+                    else:
+                        screen.set_tiler(Config.TILERS[Config.TILING['default']])
                     
     
     #------------------------------------------------------------------------------
@@ -69,22 +70,21 @@ class Desktop:
     #
     def __init__(self, attrs):
         self.update_attributes(attrs)
-        self.SCREEN = None
-        self.screens = {}
+        self._VIEWPORT = None
+        self.viewports = {}
         State.add_desktop(self)
-        self.load_screens()
+        self.load_viewports()
         
     #
-    # Probes X (using xinerama) for all available screens. For every desktop,
-    # an instance of each screen is newly created. (So the total number of
-    # "screens" in PyTyle is # of physical screens * desktops.) We do *not*
-    # queue screens for tiling here.
+    # Probes X for all available viewports. For every desktop, an instance
+    # of each viewport is newly created. (So the total number of "screens" 
+    # in PyTyle is # of physical screens * viewports * desktops.)
     #
-    def load_screens(self):
-        screens = PROBE.get_screens()
-        for screen in screens:
-            obj = Screen(self, screen)
-            self.screens[screen['id']] = obj
+    def load_viewports(self):
+        viewports = PROBE.get_viewports()
+        for viewport in viewports:
+            obj = Viewport(self, viewport)
+            self.viewports[viewport['id']] = obj
             
     #
     # Simply updates all the desktop attributes. Currently only used in the
@@ -109,11 +109,14 @@ class Desktop:
     def __str__(self):
         retval = self.name + ' - [ID: ' + str(self.id) + ', RES: ' + str(self.resx) + 'x' + str(self.resy) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ']\n'
         
-        for screen in self.screens.values():
-            retval += '\t' + str(screen) + '\n'
+        for viewport in self.viewports.values():
+            retval += '\t' + str(viewport) + '\n'
         
-            for window in screen.windows.values():
-                retval += '\t\t' + str(window) + '\n'
+            for screen in viewport.screens.values():
+                retval += '\t\t' + str(screen) + '\n'
+                for window in screen.windows.values():
+                    retval += '\t\t\t' + str(window) + '\n'
+                retval += '\n'
             retval += '\n'
             
         return retval
