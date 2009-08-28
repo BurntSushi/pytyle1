@@ -37,7 +37,7 @@ class Debug:
     # Simply opens the log file. Keep the log file going.
     #
     def __init__(self, filename):
-        self._log = None
+        self._log = sys.stderr
         if Config.DEBUG:
             self._log = open(filename, 'a+')
             print >> self._log, '\n\n', '---------------------------------'

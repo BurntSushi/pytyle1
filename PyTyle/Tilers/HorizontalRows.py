@@ -53,7 +53,7 @@ class HorizontalRows (TileDefault):
         masterX = x
                
         slaveWidth = width if not slaves else (width / row_size)
-        slaveHeight = (height if not masters else height - masterHeight) / rows
+        slaveHeight = height if not slaves else ((height if not masters else height - masterHeight) / rows)
         slaveY = y if not masters else (y + masterHeight)
         slaveX = x
         
