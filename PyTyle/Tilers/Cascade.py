@@ -24,7 +24,8 @@ Performs a full screen cascading layout of all the windows. It's important that
 we're able to access the window decoration sizes.
 """
 
-from PyTyle.Tilers.TileDefault import *
+from PyTyle.Config import Config
+from PyTyle.Tilers.TileDefault import TileDefault
 
 class Cascade (TileDefault):
     #------------------------------------------------------------------------------
@@ -50,23 +51,36 @@ class Cascade (TileDefault):
         elif slaves and slaves[0].d_top:
             decor = slaves[0].d_top
         else:
-            decor = 25
+            decor = Config.layout(self, 'decoration_height')
         
-        masterWidth = width
-        masterHeight = height - (decor * len(slaves))
+        push_over = Config.layout(self, 'push_over')
+        push_width = push_over
+        if Config.layout(self, 'horz_align') == 'right':
+            push_over = -push_over
+        
+        masterWidth = (width * Config.layout(self, 'width_factor')) - (push_width * len(slaves))
+        masterHeight = (height * Config.layout(self, 'height_factor')) - (decor * len(slaves))
         masterY = y + (decor * len(slaves))
-        masterX = x
         
-        slaveWidth = width
-        slaveHeight = height
+        slaveWidth = width * Config.layout(self, 'width_factor')
+        slaveHeight = height * Config.layout(self, 'height_factor')
         slaveY = y
-        slaveX = x
+        
+        if Config.layout(self, 'horz_align') == 'right':
+            masterX = x + (width - masterWidth) + (push_over * len(slaves))
+            slaveX = x + (width - slaveWidth)
+            push_over = 0
+        else:
+            masterX = x + (push_over * len(slaves))
+            slaveX = x
         
         # now resize the rest... keep track of heights/positioning
         for slave in slaves:
             self.help_resize(slave, slaveX, slaveY, slaveWidth, slaveHeight)
             slaveY += decor
             slaveHeight -= decor
+            slaveWidth -= push_width
+            slaveX += push_over
             slave.stack_raise()
             
         # resize the master windows
@@ -125,6 +139,32 @@ class Cascade (TileDefault):
     #------------------------------------------------------------------------------
     # PRIVATE HELPER METHODS
     #------------------------------------------------------------------------------
+    
+    #
+    # Same exact thing as Tile.help_reload, except we add to the top
+    # of the window stack instead.
+    #
+    def help_reload(self):
+        # delete first...
+        for win in self.storage.get_all():
+            if win.id not in self.screen.windows or win.hidden:
+                self.storage.remove(win)
+                
+        # gobble up active window first in case we need a master...
+        # and then just add away...
+        masters = self.storage.get_masters_by_id()
+        
+        if self.screen.get_active() and len(masters) < self.storage.get_master_count() and self.screen.get_active().id in self.screen.windows and self.screen.get_active().id not in masters:
+            self.storage.remove(self.screen.get_active())
+            self.storage.add(self.screen.get_active())
+            masters = self.storage.get_masters_by_id()                
+        
+        all = self.storage.get_all_by_id()
+        for window in self.screen.windows.values():
+            if not window.id in all:
+                self.storage.add_top(window)
+            else:
+                self.storage.try_to_promote(window) 
      
     #
     # Resets the stacking order. I'm not sure if this is the best way to

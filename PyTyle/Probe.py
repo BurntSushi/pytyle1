@@ -37,7 +37,6 @@ and a lot more.
 from Xlib.display import Display
 from Xlib import X, XK, Xatom, Xutil, protocol
 from Xlib.ext import xinerama
-from PyTyle.Config import Config
 import sys, math
 
 class Probe:
@@ -55,7 +54,9 @@ class Probe:
     #
     def __init__(self):
         self._display = Display()
-        self._root = self.get_display().screen().root        
+        self._root = self.get_display().screen().root
+        self._wm = ''
+        self.determine_window_manager()    
         self.get_root().change_attributes(event_mask = X.KeyPressMask | X.SubstructureNotifyMask | X.PropertyChangeMask)
         
     #
@@ -65,6 +66,26 @@ class Probe:
     #
     def atom(self, name):
         return self.get_display().intern_atom(name)
+    
+    #
+    # Finds the name of the current window manager.
+    #
+    def determine_window_manager(self):
+        cid = self.get_root().get_full_property(self.atom("_NET_SUPPORTING_WM_CHECK"), 0)
+        if not cid or not hasattr(cid, 'value'):
+            return
+        
+        cid = cid.value[0]
+        
+        win = self.get_display().create_resource_object('window', cid)
+        if not win:
+            return
+        
+        name = win.get_full_property(self.atom("_NET_WM_NAME"), 0)
+        if not name or not hasattr(name, 'value'):
+            return
+        
+        self._wm = name.value.lower()
         
     #
     # Takes a string representation of a key and turns it into a key code for
@@ -240,8 +261,8 @@ class Probe:
             inc = 0
             viewports = []
             
-            for h in range(verts):
-                for v in range(horz):
+            for v in range(verts):
+                for h in range(horz):
                     viewports.append({
                                       'id': inc, 
                                       'x': (geom.value[0] / horz) * h,
@@ -430,6 +451,11 @@ class Probe:
     def get_window_list(self):
         return self.get_root().get_full_property(self.atom("_NET_CLIENT_LIST"), Xatom.WINDOW).value
     
+    #
+    # Returns the current window manager name.
+    #
+    def get_wm_name(self):
+        return self._wm    
     
     #
     # Another one that took forever to figure out. Grabbing a key *itself* is
@@ -460,7 +486,9 @@ class Probe:
     # Checks to see if Compiz is running. It needs unique attention.
     #
     def is_compiz(self):
-        return Config.MISC['compiz']
+        if self.get_wm_name() == 'compiz':
+            return True
+        return False
     
     #
     # Reports if the window manager is running or not

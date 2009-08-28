@@ -71,7 +71,7 @@ class State:
     # class to determine. (That is where the window filter is used.)
     #
     _WINDOWS = {}
-    
+        
     
     #------------------------------------------------------------------------------
     # STATIC METHODS
@@ -133,6 +133,13 @@ class State:
     @staticmethod
     def get_windows():
         return State._WINDOWS
+    
+    #
+    # Retrieves the name of the currently running window manager.
+    #
+    @staticmethod
+    def get_wm_name():
+        return PROBE.get_wm_name()
         
     #
     # Reports whether the tiling queue is empty or not.

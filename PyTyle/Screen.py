@@ -49,7 +49,7 @@ class Screen:
         self._active = None
         self._tile = None
         self._tiled = False
-        self._tiling = False
+        self._tiling = Config.misc('global_tiling')
         self.windows = {}
         self.viewport = viewport
         
@@ -124,15 +124,15 @@ class Screen:
         # and use it if it exists...
         if len(self.viewport.screens) == 1:
             if 0 in Config.WORKAREA:
-                x = self.x + Config.WORKAREA[self.id]['left']
-                y = self.y + Config.WORKAREA[self.id]['top']
-                height = self.height - Config.WORKAREA[self.id]['bottom'] + Config.WORKAREA[self.id]['top']
-                width = self.width - Config.WORKAREA[self.id]['right'] + Config.WORKAREA[self.id]['left']
+                x = self.x + Config.workarea(0, 'left')
+                y = self.y + Config.workarea(0, 'top')
+                height = self.height - Config.workarea(0, 'bottom') + Config.workarea(0, 'top')
+                width = self.width - Config.workarea(0, 'right') + Config.workarea(0, 'left')
             else:
                 x = self.viewport.x
                 y = self.viewport.y
-                height = self.viewport.height
-                width = self.viewport.width
+                height = self.viewport.desktop.height
+                width = self.viewport.desktop.width
         else:
             x = self.x
             y = self.y
@@ -140,11 +140,10 @@ class Screen:
             width = self.width
             
             # Factor in manual docks...
-            if self.id in Config.WORKAREA:
-                x += Config.WORKAREA[self.id]['left']
-                y += Config.WORKAREA[self.id]['top']
-                height -= Config.WORKAREA[self.id]['bottom'] + Config.WORKAREA[self.id]['top']
-                width -= Config.WORKAREA[self.id]['right'] + Config.WORKAREA[self.id]['left']
+            x += Config.workarea(self.id, 'left')
+            y += Config.workarea(self.id, 'top')
+            height -= Config.workarea(self.id, 'bottom') + Config.workarea(self.id, 'top')
+            width -= Config.workarea(self.id, 'right') + Config.workarea(self.id, 'left')
                 
         return (x, y, width, height)
     

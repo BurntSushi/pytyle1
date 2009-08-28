@@ -52,12 +52,11 @@ class Desktop:
             desktop = Desktop(desk)
             for viewport in desktop.viewports.values():
                 for screen in viewport.screens.values():
-                    if screen.id in Config.TILING and isinstance(Config.TILING[screen.id], dict) and desktop.id in Config.TILING[screen.id]:
-                        screen.set_tiler(Config.TILERS[Config.TILING[screen.id][desktop.id]])
-                    elif screen.id in Config.TILING and not isinstance(Config.TILING[screen.id], dict):
-                        screen.set_tiler(Config.TILERS[Config.TILING[screen.id]])
-                    else:
-                        screen.set_tiler(Config.TILERS[Config.TILING['default']])
+                    desk_or_view = desktop.id
+                    if PROBE.is_compiz():
+                        desk_or_view = viewport.id
+                        
+                    screen.set_tiler(Config.tilers(Config.tiling(screen.id, desk_or_view)))
                     
     
     #------------------------------------------------------------------------------

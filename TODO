@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 
-Last updated: Aug 22, 2009 at 1:44 AM
+Last updated: Aug 28, 2009 at 0:17
 
 See http://pytyle.com for more information. Also,
 please don't hesitate to contact me:
@@ -27,27 +27,13 @@ please don't hesitate to contact me:
     
 TODO LIST
 
-Make all commands work when windows are maximized
-    Alternatively- create a new "full screen" tiling
-    algorithm. I like this better. (And thus remove
-    the maximize/restore commands.)
-
 Make sure windows don't get resized to less than 1x1
 
 Look into drawing borders around windows when undecorated.
 
 Look at abstracting the main tiling algorithms a bit more.
 
-Add support for more window managers. (Compiz will be
-a bit difficult.) Thankfully, I don't need to worry
+Add support for more window managers. Thankfully, I don't need to worry
 about tiling window managers :-)
 
 Add more tiling algorithms! (Ideas, anyone?)
-
-
-BUG FIXES
-
-For release 0.2
-
-PyTyle now detect when the screen orientation changes.
-(For instance, if you add or remove a screen.)

@@ -24,10 +24,8 @@ The Viewport class will handle all viewport related functionality. For instance,
 it provides methods to detect if a given window is on its viewport.
 """
 
-from PyTyle.Config import Config
 from PyTyle.State import State
 from PyTyle.Probe import PROBE
-from PyTyle.Debug import DEBUG
 
 from PyTyle.Screen import Screen
 

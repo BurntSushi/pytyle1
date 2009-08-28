@@ -3,4 +3,5 @@ include INSTALL
 include LICENSE
 include README
 include TODO
+include CHANGELOG
 recursive-include PyTyle/*

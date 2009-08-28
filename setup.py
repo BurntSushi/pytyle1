@@ -34,7 +34,7 @@ setup(
       name = "pytyle",
       author = "Andrew Gallant",
       author_email = "andrew@pytyle.com",
-      version = "0.6.4",
+      version = "0.7",
       license = "GPL",
       description = "A manual tiling manager for EWMH compliant window managers",
       long_description = "See README",
@@ -43,7 +43,7 @@ setup(
       packages = ['PyTyle', 'PyTyle.Tilers'],
       data_files = [
                     (sysconfig.get_python_lib() + '/PyTyle',
-                     ['./pytylerc', './INSTALL', './LICENSE', './README', './TODO'])
+                     ['./pytylerc', './INSTALL', './LICENSE', './README', './TODO', './CHANGELOG'])
                     ],
       scripts = ['pytyle']
       )

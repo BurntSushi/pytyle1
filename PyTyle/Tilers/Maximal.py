@@ -25,7 +25,7 @@ part, the only useful commands are screen focus/put and focusing on the
 previous/next window.
 """
 
-from PyTyle.Tilers.TileDefault import *
+from PyTyle.Tilers.TileDefault import TileDefault
 
 class Maximal (TileDefault):
     #------------------------------------------------------------------------------

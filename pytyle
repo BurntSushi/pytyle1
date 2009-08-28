@@ -120,8 +120,6 @@ try:
     # and current window).
     State.reload_active()
     
-    print State.get_desktop()
-    
     # Stall and await orders...
     while True:
         # This is our queue of tilings that we need to flush.
@@ -132,8 +130,8 @@ try:
         if State.queue_has_screens():
             while State.queue_has_screens():
                 screen = State.dequeue_screen()
-                Tile.dispatch(screen.get_tiler(), Tile.tile)
-            time.sleep(Config.MISC['timeout'])
+                Tile.dispatch(screen.get_tiler(), 'tile')
+            time.sleep(Config.misc('timeout'))
             
         # This loads up the next event.
         e = Event()
@@ -155,13 +153,13 @@ try:
             State.reload_active() 
         
         elif e.is_desktop_change():
-            time.sleep(Config.MISC['timeout'])
+            time.sleep(Config.misc('timeout'))
             State.reload_active(None, True)
             
         # If the window manager's client list changes, then
         # we need to add or remove a window
         elif e.is_windowlist_change():
-            time.sleep(Config.MISC['timeout'])
+            time.sleep(Config.misc('timeout'))
             
             try:
                 Window.load_new_windows()

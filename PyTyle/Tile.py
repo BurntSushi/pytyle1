@@ -70,7 +70,7 @@ class Tile:
     # binding is the only way to enable tiling.)
     #
     @staticmethod
-    def dispatch(tiler, action=None, keycode=None, masks=None):        
+    def dispatch(tiler, action=None, keycode=None, masks=None):
         if not action and keycode and masks:
             if keycode not in State.get_dispatcher():
                 print >> sys.stderr, "Keycode %s is not bound" % keycode
@@ -82,12 +82,23 @@ class Tile:
             else:
                 print >> sys.stderr, "Keycode %s and keymask %d are not bound" % (keycode, mask)
 
-            if not tiler.screen.is_tiling() and action != Tile.tile:
+            if not tiler.screen.is_tiling() and action.find('tile.') == -1:
                 return
         elif action:
             # We can only initiate tiling through keycodes...
             if not tiler.screen.is_tiling():
                 return
+            
+        # Turn the action into a method...
+        if action.find('tile.') != -1:
+            layout = action[(action.find('.') + 1):]
+            if layout != 'default' and layout in Config.TILERS:
+                tiler.screen.set_tiler(Config.tilers(layout))
+                tiler = tiler.screen.get_tiler()
+                tiler._reset()
+            action = Tile.tile
+        else:
+            action = eval('Tile.' + action)
             
         action(tiler)
     
@@ -369,6 +380,7 @@ class Tile:
     # (Tentatively assigned the Alt-Q key binding.)
     #
     def _query(self):
+        print State.get_wm_name()
         print self.screen.viewport.desktop
         print self.storage
         
@@ -391,11 +403,11 @@ class Tile:
         if window.static:
             window.remove_static_property()
             
-        if Config.MISC['decorations']:
-            window.resize(x, y, width - window.d_left - window.d_right, height - window.d_top - window.d_bottom)
+        if Config.misc('decorations'):
+            window.resize(int(x), int(y), int(width - window.d_left - window.d_right), int(height - window.d_top - window.d_bottom))
         else:
             window.remove_decorations()
-            window.resize(x, y, width, height)
+            window.resize(int(x), int(y), int(width), int(height))
             
     #
     # Reloads the entire storage container underlying the tiling algorithm.
@@ -426,11 +438,9 @@ class Tile:
         all = self.storage.get_all_by_id()
         for window in self.screen.windows.values():
             if not window.id in all:
-                self.storage.add_top(window)
+                self.storage.add_bottom(window)
             else:
                 self.storage.try_to_promote(window)
-                
-        #self.storage.sort()
         
     #
     # Simple method to switch two windows visually. It also takes care of
@@ -497,12 +507,12 @@ class Tile:
         self.screen.disable_tiling()
         
     def cycle_tiler(self):
-        for i in range(len(Config.MISC['tilers'])):
-            if Config.MISC['tilers'][i] is self.__class__.__name__:
-                if (i + 1) == len(Config.MISC['tilers']):
-                    self.screen.set_tiler(Config.TILERS[Config.MISC['tilers'][0]])
+        for i in range(len(Config.misc('tilers'))):
+            if Config.misc('tilers')[i] is self.__class__.__name__:
+                if (i + 1) == len(Config.misc('tilers')):
+                    self.screen.set_tiler(Config.tilers(Config.misc('tilers')[0]))
                 else:
-                    self.screen.set_tiler(Config.TILERS[Config.MISC['tilers'][i + 1]])
+                    self.screen.set_tiler(Config.tilers(Config.misc('tilers')[i + 1]))
                     
         self._reset()
         

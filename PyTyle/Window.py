@@ -173,7 +173,7 @@ class Window:
     #
     def filtered(self):
         if self.winclass:
-            for winfilter in Config.FILTER:
+            for winfilter in Config.filter():
                 if self.winclass[0].lower().find(winfilter.lower()) != -1 or self.winclass[1].lower().find(winfilter.lower()) != -1: # or window.title.lower().find(winfilter.lower()) != -1:
                     return True
                 

@@ -33,7 +33,7 @@ at the bottom of your class definition file (see the bottom of this file
 for an example). This is so tiling algorithms can be dynamically loaded.
 """
 
-from PyTyle.Tilers.TileDefault import *
+from PyTyle.Tilers.TileDefault import TileDefault
 
 class Horizontal (TileDefault):
     #

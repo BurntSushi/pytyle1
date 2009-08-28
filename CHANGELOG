@@ -1,0 +1,100 @@
+#===============================================================================
+# PyTyle - A manual tiling manager
+# Copyright (C) 2009  Andrew Gallant <andrew@pytyle.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#===============================================================================
+
+Last updated: Aug 28, 2009 at 0:17
+
+See http://pytyle.com for more information. Also,
+please don't hesitate to contact me:
+    
+    andrew@pytyle.com
+    
+
+#===============================================================================    
+0.7
+
+- Initial support for Compiz.
+    This is done by detecting and calculating all of the viewports that
+    Compiz uses instead of desktops. The only thing that's giving me a
+    bit of trouble in Compiz is the Cascade layout, namely, something is
+    going wrong when I'm resetting the stacking order. (Window focus is
+    weird.) Also, if you're curious, x/y positions of windows in Compiz
+    are *relative* to the current viewport. So if you're using wmctrl to
+    debug, don't expect to get cogent x,y positions unless you figure in
+    the current viewport (which wmctrl will give you with wmctrl -d).
+    
+    Note: Using multiple desktops with multiple viewports should, in theory
+    work. It has not been tested.
+    
+    Note 2: PyTyle is only enabling viewport support when it detects that
+    *Compiz* is the window manager. If any other window manager needs
+    viewport support from PyTyle, I'll need to know about it to add it. (Or
+    you could modify Probe.is_compiz.)
+    
+    Note 3: Per workspace/screen default layouts work with viewports. However,
+    this will not work as expected if you're using viewports and multiple
+    desktops.
+    
+- Global tiling option added
+    This is found in the "MISC" section of the configuration file. When
+    enabled, tiling will automatically be enabled on *all* workspaces and
+    screens. Meaning that, if you start PyTyle with this option enabled,
+    it will tile all workspaces immediately. (It will still use default
+    layouts specified in TILING.) You can still disable tiling on a per
+    workspace/screen basis by issuing the traditional "untile" command.
+    
+- Key binding setup changed (Support for specific layout on key press)
+    Before, I was using first class methods to bind keys to certain tiling
+    actions. While easy to do, it was not robust enough. I have now replaced
+    the first class methods in the configuration file with simple strings.
+    (Which, incidentally, are eventually passed through eval.) This means
+    that any old configuration file will be an epic fail with this new
+    version.
+    
+    Note: You can bind keys to layouts by following the examples in the
+    configuration file. (By default, they are commented out.)
+    
+    Note 2: "tile.default" has replaced "Tile.tile". It is the same thing.
+    
+    Note 3: Incidentally, if you wanted to bind a certain tiling layout to
+    say, a menu item in OpenBox, you might set the Cascade layout to
+    "Ctrl-Alt-C", and you could use the command "xdotool key ctrl-alt-c"
+    to instruct PyTyle to use the Cascade layout. This of course requires
+    that you install xdotool. (This "workaround" is in place of using a
+    command line option like "pytyle cascade". It's possible this will be
+    implemented in the future.)
+    
+- Specific layout options
+    Layouts can now have specific configuration options. For example, the
+    Cascade layout was at first using the full screen. Instead of creating
+    a new and separate layout that was representative of a more traditional
+    cascading layout (i.e., not full screen, and indented windows), I've
+    added the ability to simply re-tool the current Cascade layout. For
+    example, you can change the "push_over" option to have a window indent
+    effect, or perhaps you might want the windows cascading on the right
+    side of the screen instead of the left. Among other things, you can also
+    change the relative width/height of the cascading windows.
+    
+- New tiling layout added: Horizontal Rows
+    Make sure you have a nice tall screen for this one! This resembles the
+    regular horizontal layout, but instead of piling all the windows in one
+    row underneath the master, it will actually use an arbitrary number of
+    rows depending on the number of columns you specify. (Another example
+    of using layout specific configuration- by default, it is 2 columns.)
+    All the usual tiling functions still work with this layout.
+#===============================================================================

@@ -37,8 +37,6 @@ it will have a place in PyTyle, the tiling algorithm will not be able
 to see it.
 """
 
-from PyTyle.Config import Config
-
 class TileStorage:
     #------------------------------------------------------------------------------
     # CONSTRUCTOR AND INSTANCE METHODS
