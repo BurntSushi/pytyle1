@@ -94,13 +94,24 @@ class Config:
                            'gmrun', 'gimp', 'download',
                            ],
                 'LAYOUT': {
+                           'Vertical': {
+                                        'width_factor': 0.5,
+                                        },
+                           'Horizontal': {
+                                          'height_factor': 0.5,
+                                          },
+                           'Maximal': {},
                            'Cascade': {                                                                              
                                        'decoration_height': 25,
                                        'width_factor': 1.0,
                                        'height_factor': 1.0,
                                        'push_over': 0,
                                        'horz_align': 'left',
-                                       }
+                                       },
+                           'HorizontalRows': {
+                                              'row_size': 2,
+                                              'height_factor': 0.5,
+                                              }, 
                            },
                 'TILING': {
                            'default': 'Vertical',
@@ -149,8 +160,8 @@ class Config:
         if layout in Config.LAYOUT and option in Config.LAYOUT[layout]:
             return Config.LAYOUT[layout][option]
         
-        if layout in Config.DEFAULTS['LAYOUTS'] and option in Config.DEFAULTS['LAYOUTS'][layout]:
-            return Config.DEFAULTS['LAYOUTS'][layout]
+        if layout in Config.DEFAULTS['LAYOUT'] and option in Config.DEFAULTS['LAYOUT'][layout]:
+            return Config.DEFAULTS['LAYOUT'][layout][option]
         
         return None
         

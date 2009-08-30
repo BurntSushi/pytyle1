@@ -58,6 +58,11 @@ class State:
     _DISPATCHER = {}
     
     #
+    # Tells us whether we need to reload the config file.
+    #
+    _RELOAD = False
+    
+    #
     # Queue of screens to tile. It's flushed at the start of each event loop
     # iteration.
     #
@@ -107,6 +112,20 @@ class State:
         return State._TO_TILE.pop(0)
     
     #
+    # Unsets the flag to reload the config file.
+    #
+    @staticmethod
+    def did_reload():
+        State._RELOAD = False
+    
+    #
+    # Sets a flag to have PyTyle reload the config file.
+    #
+    @staticmethod
+    def do_reload():
+        State._RELOAD = True
+    
+    #
     # Retrieves the current desktop.
     #
     @staticmethod
@@ -140,6 +159,13 @@ class State:
     @staticmethod
     def get_wm_name():
         return PROBE.get_wm_name()
+    
+    #
+    # Tells us whether we need to reload the config file.
+    #
+    @staticmethod
+    def needs_reload():
+        return State._RELOAD
         
     #
     # Reports whether the tiling queue is empty or not.
@@ -264,6 +290,37 @@ class State:
                 ret.append(window) 
                 
         return ret
+    
+    #
+    # UN-registers all the key bindings specified in the configuration file. This
+    # allows us to dynamically change key bindings as PyTyle is running.
+    #
+    @staticmethod
+    def unregister_hotkeys():
+        for mapping in Config.KEYMAP:
+            callback = Config.KEYMAP[mapping]
+            
+            codes = mapping.split('-')
+            mods = codes[:-1]
+            key = codes[-1]
+            
+            # No key?
+            if not key:
+                print >> sys.stderr, "Could not map %s to %s" % (mapping, callback) 
+                continue
+            
+            # generate key code and mod mask...
+            keycode = PROBE.generate_keycode(key)
+            modmask = PROBE.generate_modmask(mods)
+            
+            # Tell X we want to hear about it when this key is pressed...
+            try:
+                PROBE.ungrab_key(keycode, modmask)
+            except:
+                print "Nada:", callback
+            
+        # And finally reset the dispatcher...
+        State._DISPATCHER = {}
     
     #
     # Wipes the current state. Useful for when the screen orientation changes.

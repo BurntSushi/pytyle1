@@ -26,7 +26,6 @@ default, it will be two windows per row (or, two columns). This can be
 changed in the LAYOUT portion of the configuration file.
 """
 
-from PyTyle.Config import Config
 from PyTyle.Tilers.TileDefault import TileDefault
 import math
 
@@ -42,13 +41,13 @@ class HorizontalRows (TileDefault):
         # set some vars...
         masters = self.storage.get_masters()
         slaves = self.storage.get_slaves()
-        row_size = Config.layout(self, 'row_size')
+        row_size = self.state.get('row_size')
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
         last_row_size = len(slaves) % row_size
         if not last_row_size: last_row_size = row_size
         
         masterWidth = width if not masters else (width / len(masters))
-        masterHeight = height if not slaves else height / 2
+        masterHeight = height if not slaves else int(height * self.state.get('height_factor'))
         masterY = y
         masterX = x
                
@@ -93,21 +92,25 @@ class HorizontalRows (TileDefault):
     # increase/decrease number right away to make sure it's a multiple
     # of the number of rows. (We go down instead of up.)
     #                     
-    def _master_increase(self, pixels = 25):
+    def _master_increase(self, factor = 0.05):
+        x, y, width, height = self.screen.get_workarea()
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
-        row_size = Config.layout(self, 'row_size')
+        row_size = self.state.get('row_size')
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
-        
-        # Make it easy... change pixels to next closest
-        # multiple of the number of rows...
-        pixels = pixels - (pixels % rows)
-        
-        slave_pixels = pixels / rows
         
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
+        
+        # first calculate pixels...
+        pixels = int(((self.state.get('height_factor') + factor) * height) - (self.state.get('height_factor') * height))
+        self.state.set('height_factor', self.state.get('height_factor') + factor)
+        
+        # Make it easy... change pixels to next closest
+        # multiple of the number of rows...
+        pixels = pixels - (pixels % rows)        
+        slave_pixels = pixels / rows
         
         current_row = 1
         current_window = 1
@@ -127,21 +130,25 @@ class HorizontalRows (TileDefault):
     #
     # See master_increase.
     # 
-    def _master_decrease(self, pixels = 25):
+    def _master_decrease(self, factor = 0.05):
+        x, y, width, height = self.screen.get_workarea()
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
-        row_size = Config.layout(self, 'row_size')
+        row_size = self.state.get('row_size')
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
-        
-        # Make it easy... change pixels to next closest
-        # multiple of the number of rows...
-        pixels = pixels - (pixels % rows)
-        
-        slave_pixels = pixels / rows
         
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
+        
+        # first calculate pixels...
+        pixels = int((self.state.get('height_factor') * height) - ((self.state.get('height_factor') - factor) * height))
+        self.state.set('height_factor', self.state.get('height_factor') - factor)
+        
+        # Make it easy... change pixels to next closest
+        # multiple of the number of rows...
+        pixels = pixels - (pixels % rows)        
+        slave_pixels = pixels / rows
         
         current_row = 1
         current_window = 1

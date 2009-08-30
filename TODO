@@ -27,6 +27,8 @@ please don't hesitate to contact me:
     
 TODO LIST
 
+The "Cascade" layout needs attention. It's behavior is a bit weird.
+
 Make sure windows don't get resized to less than 1x1
 
 Look into drawing borders around windows when undecorated.

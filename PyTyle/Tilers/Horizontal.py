@@ -55,7 +55,7 @@ class Horizontal (TileDefault):
         slaves = self.storage.get_slaves()
         
         masterWidth = width if not masters else (width / len(masters))
-        masterHeight = height if not slaves else height / 2
+        masterHeight = height if not slaves else int(height * self.state.get('height_factor'))
         masterY = y
         masterX = x
                
@@ -79,13 +79,19 @@ class Horizontal (TileDefault):
     # the height of all slave windows. Won't do anything if there are either
     # no masters or no slaves.
     #                     
-    def _master_increase(self, pixels = 25):
+    def _master_increase(self, factor = 0.05):
+        x, y, width, height = self.screen.get_workarea()
+        
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
         
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
+        
+        # first calculate pixels...
+        pixels = int(((self.state.get('height_factor') + factor) * height) - (self.state.get('height_factor') * height))
+        self.state.set('height_factor', self.state.get('height_factor') + factor)
         
         for slave in slaves:
             slave.resize(slave.x, slave.y + pixels, slave.width, slave.height - pixels)
@@ -97,13 +103,19 @@ class Horizontal (TileDefault):
     # the height of all slave windows. Won't do anything if there are either
     # no masters or no slaves.
     # 
-    def _master_decrease(self, pixels = 25):
+    def _master_decrease(self, factor = 0.05):
+        x, y, width, height = self.screen.get_workarea()
+        
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
         
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
+        
+        # first calculate pixels...
+        pixels = int((self.state.get('height_factor') * height) - ((self.state.get('height_factor') - factor) * height))
+        self.state.set('height_factor', self.state.get('height_factor') - factor)
         
         for slave in slaves:
             slave.resize(slave.x, slave.y - pixels, slave.width, slave.height + pixels)

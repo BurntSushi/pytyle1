@@ -370,7 +370,7 @@ class Probe:
             
         if state and (self.atom("_NET_WM_STATE_HIDDEN") in state.value or self.atom("_NET_WM_STATE_SKIP_TASKBAR") in state.value or self.atom("_NET_WM_STATE_SKIP_PAGER") in state.value):
             hidden = True
-        if dock and (self.atom("_NET_WM_WINDOW_TYPE_DOCK") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_TOOLBAR") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_MENU") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_SPLASH") in dock.value):
+        if dock and (self.atom("_NET_WM_WINDOW_TYPE_DOCK") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_TOOLBAR") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_MENU") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_SPLASH") in dock.value or self.atom("_NET_WM_WINDOW_TYPE_DIALOG") in dock.value):
             hidden = True        
         
         # Construct the window data structure. This is passed to the
@@ -513,6 +513,16 @@ class Probe:
         if skip and (self.atom("_NET_WM_STATE_MODAL") in skip.value or self.atom("_NET_WM_STATE_SKIP_TASKBAR") in skip.value or window.get_wm_transient_for()):
             return True
         return False
+    
+    #
+    # Ungrabs a key (and all its modifiers). This allows us to dynamically reload
+    # keybindings as PyTyle is running.
+    #
+    def ungrab_key(self, keycode, mask):
+        self.get_root().ungrab_key(keycode, mask)
+        self.get_root().ungrab_key(keycode, mask | X.Mod2Mask)
+        self.get_root().ungrab_key(keycode, mask | X.LockMask)
+        self.get_root().ungrab_key(keycode, mask | X.Mod2Mask | X.LockMask)
  
     #
     # Activates the given window. This will also pull it above all other

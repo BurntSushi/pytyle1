@@ -17,8 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 
-PyTyle Version 0.1
-
 PyTyle is an extremely versatile and extensible tiling manager that is meant
 to be embedded into EWMH window managers. Its feature set was modeled after
 the basic tiling features of XMonad- even down to the key bindings.

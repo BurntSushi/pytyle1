@@ -24,7 +24,6 @@ Performs a full screen cascading layout of all the windows. It's important that
 we're able to access the window decoration sizes.
 """
 
-from PyTyle.Config import Config
 from PyTyle.Tilers.TileDefault import TileDefault
 
 class Cascade (TileDefault):
@@ -51,22 +50,22 @@ class Cascade (TileDefault):
         elif slaves and slaves[0].d_top:
             decor = slaves[0].d_top
         else:
-            decor = Config.layout(self, 'decoration_height')
+            decor = self.state.get('decoration_height')
         
-        push_over = Config.layout(self, 'push_over')
+        push_over = self.state.get('push_over')
         push_width = push_over
-        if Config.layout(self, 'horz_align') == 'right':
+        if self.state.get('horz_align') == 'right':
             push_over = -push_over
         
-        masterWidth = (width * Config.layout(self, 'width_factor')) - (push_width * len(slaves))
-        masterHeight = (height * Config.layout(self, 'height_factor')) - (decor * len(slaves))
+        masterWidth = (width * self.state.get('width_factor')) - (push_width * len(slaves))
+        masterHeight = (height * self.state.get('height_factor')) - (decor * len(slaves))
         masterY = y + (decor * len(slaves))
         
-        slaveWidth = width * Config.layout(self, 'width_factor')
-        slaveHeight = height * Config.layout(self, 'height_factor')
+        slaveWidth = width * self.state.get('width_factor')
+        slaveHeight = height * self.state.get('height_factor')
         slaveY = y
         
-        if Config.layout(self, 'horz_align') == 'right':
+        if self.state.get('horz_align') == 'right':
             masterX = x + (width - masterWidth) + (push_over * len(slaves))
             slaveX = x + (width - slaveWidth)
             push_over = 0

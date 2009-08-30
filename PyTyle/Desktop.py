@@ -58,6 +58,22 @@ class Desktop:
                         
                     screen.set_tiler(Config.tilers(Config.tiling(screen.id, desk_or_view)))
                     
+    #
+    # Same as "load_desktops" except we're just refreshing their information.
+    #   
+    @staticmethod
+    def reload_desktops():
+        # initialize all desktops and their associated windows
+        for desktop in State.get_desktops().values():
+            for viewport in desktop.viewports.values():
+                for screen in viewport.screens.values():
+                    desk_or_view = desktop.id
+                    if PROBE.is_compiz():
+                        desk_or_view = viewport.id
+                        
+                    screen.set_tiler(Config.tilers(Config.tiling(screen.id, desk_or_view)))
+                    screen.needs_tiling()
+                    
     
     #------------------------------------------------------------------------------
     # CONSTRUCTOR AND DESKTOP RELATED ATTRIBUTES/METHODS

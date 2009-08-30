@@ -65,7 +65,7 @@ if not PROBE.is_wm_running():
     while True:
         time.sleep(1)
         if PROBE.is_wm_running():
-            time.sleep(10)
+            time.sleep(1)
             break
 
 # load configuration
@@ -122,6 +122,42 @@ try:
     
     # Stall and await orders...
     while True:
+        if State.needs_reload():            
+            try:
+                config_path = os.getenv('XDG_CONFIG_HOME')
+                if not config_path:
+                    config_path = os.getenv('HOME') + '/.config'
+                config_path += '/pytyle'
+                config_file = "%s/pytylerc" % config_path
+                     
+                if os.access(config_file, os.F_OK | os.R_OK):
+                    execfile(config_file)
+            except:
+                DEBUG.write("Could not write configuration file to home directory and load it. Exiting!")
+                DEBUG.write(traceback.format_exc())
+                sys.exit(0)
+                
+            # Reload the tiling modules
+            for module in Config.MISC['tilers']:
+                tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
+                Config.TILERS[module] = tmp.CLASS
+                
+            # Reload our key bindings
+            #
+            # Note: It seems like X keeps our previous key bindings
+            # even though we "ungrab" them only after we attempt to
+            # regrab the rest of the keybindings. This will thus spit
+            # out an error if run from the command line, but otherwise
+            # full functionality is here. I support the only problem
+            # might arise if you were trying to "free up" a key. You
+            # might need to restart PyTyle for that.
+            State.unregister_hotkeys()
+            State.register_hotkeys()
+            
+            # And now wipe everything...
+            Desktop.reload_desktops()
+            State.did_reload()
+        
         # This is our queue of tilings that we need to flush.
         # Screens are queued for tiling when windows change,
         # disappear, popup, etc. We almost never make direct

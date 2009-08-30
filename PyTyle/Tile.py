@@ -38,7 +38,7 @@ To create your own tiling algorithm, read the comments in this file, along with
 Tilers/TileDefault.py, Tilers/Horizontal.py, and Tilers/Vertical.py.
 """
 
-import sys
+import sys, os, time
 
 from PyTyle.Config import Config
 from PyTyle.State import State
@@ -46,6 +46,7 @@ from PyTyle.Debug import DEBUG
 import traceback
 
 from PyTyle.TileStorage import TileStorage
+from PyTyle.TileState import TileState
 
 class Tile:
     #------------------------------------------------------------------------------
@@ -80,7 +81,8 @@ class Tile:
             if masks in State.get_dispatcher()[keycode]:
                 action = State.get_dispatcher()[keycode][masks]
             else:
-                print >> sys.stderr, "Keycode %s and keymask %d are not bound" % (keycode, mask)
+                print >> sys.stderr, "Keycode %s and keymask %d are not bound" % (keycode, masks)
+                return
 
             if not tiler.screen.is_tiling() and action.find('tile.') == -1:
                 return
@@ -116,11 +118,14 @@ class Tile:
     # preclude their customization. Simply overload whichever method that needs customizing
     # in your tiling class. (_tile, _cycle, _master_increase, _master_decrease should be
     # sufficient here. Along with the helper methods help_find_next and help_find_previous.)
+    # We also initialize this tiler's "state"- this will automatically save certain things for
+    # us, like the sizes of panes.
     # 
     def __init__(self, screen):
         self.screen = screen
         self.storage = TileStorage()
         self.cycleIndex = 0
+        self.state = TileState(self)
         
     #
     # The core of the tiling algorithm. This will be called whenever PyTyle senses
@@ -143,6 +148,12 @@ class Tile:
         for window in self.storage.get_all():
             window.add_decorations()
             window.resize(window.origx, window.origy, window.origwidth, window.origheight)
+            
+    #
+    # Tells PyTyle to reload the configuration file.
+    #
+    def _reload(self):
+        State.do_reload()
         
     #
     # Does a hard reset of the current screen. It empties the tiling storage, reloads
@@ -152,6 +163,7 @@ class Tile:
     #
     def _reset(self):
         self.storage = TileStorage()
+        self.state.reset()
         self.cycleIndex = 0
         self.screen.needs_tiling()
         
@@ -515,6 +527,9 @@ class Tile:
                     self.screen.set_tiler(Config.tilers(Config.misc('tilers')[i + 1]))
                     
         self._reset()
+        
+    def reload(self):
+        self._reload()
         
     def reset(self):
         self._reset()

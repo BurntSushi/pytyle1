@@ -130,6 +130,11 @@ Config.KEYMAP = {
                  # to both Tilers/Horizontal.py and Tilers/Vertical.py.)
                  'Alt-Z': 'cycle_tiler',
                  
+                 # Reloads the configuration file. Make changes to your
+                 # config file, and have them applied immediately by
+                 # calling this without having to restart PyTyle.
+                 'Alt-Q': 'reload',
+                 
                  # This is a hard reset of the current screen. It will
                  # force a re-tile and refresh PyTyle's image of the
                  # current screen. It will keep the same tiling
@@ -276,7 +281,27 @@ Config.FILTER = [
 #
 # Note: Not every layout will have configuration options.
 Config.LAYOUT = {
-                 # Default settings for the full screen "Cascade" layout.
+                 'Vertical': {
+                              # The default width factor. This is used when
+                              # the screen is initially tiled (or reset).
+                              # Possible values: 0 < x <= 1.0
+                              'width_factor': 0.5,
+                              },
+                              
+                 'Horizontal': {
+                                # The default height factor. This is used
+                                # when the screen is initialled tiled (or
+                                # reset). Possible values:
+                                # 0 < y <= 1.0
+                                'height_factor': 0.5,
+                                },
+                                
+                 'Maximal': {
+                             # Nothing here yet... Are there any options for
+                             # Maximal? (True full screen? i.e., overlap panels
+                             # and docks?)
+                             },
+
                  'Cascade': {
                              # This will be determined automatically,
                              # but in case the windows aren't
@@ -331,7 +356,7 @@ Config.LAYOUT = {
 #                             'width_factor': 0.5,
 #                             'height_factor': 0.5,
 #                             'push_over': 25,
-#                             'align': 'left',
+#                             'horz_align': 'left',
 #                             }
                  }
 

@@ -23,8 +23,56 @@ See http://pytyle.com for more information. Also,
 please don't hesitate to contact me:
     
     andrew@pytyle.com
-    
 
+
+#===============================================================================
+0.7.2
+
+- New wiki added
+    http://pytyle.com
+    Check it out!
+
+- Dynamically load your configuration file
+    In keeping with the fashion of XMonad, you can now change your PyTyle
+    configuration on the fly with the "reload" command (by default, it is
+    assigned to the "Alt-Q" key binding). Anything goes. You could even add
+    your own custom tiling layout from scratch while PyTyle is running.
+    
+    Note: The "global_tiling" option isn't available to be changed dynamically.
+    Should it? Thoughts are welcome.
+    
+- Layout proportions are kept
+    Before this version, whenever you added/removed a new window to your tiling
+    layout, the master/slave proportions were reset to their defaults. This
+    should not happen any more. Layouts now have the ability to save their
+    "state" on the fly. (If you've been hacking your own layouts, it's important
+    that you take a look at the code changes in, say, PyTyle/Tilers/Vertical.py
+    so that you can incorporate saving state in your layout as well. It is very
+    easy.)
+    
+    Note: You can reset your tiling state by doing one of the following three
+    things:
+        1. Change your tiling layout
+        2. *Reset* your layout (This isn't the regular "Alt-A" but the
+           "Alt-Shift-Space" command.)
+        3. Reload your configuration file.
+        
+- More layout options
+    Check out the default configuration file provided with this release for
+    additional LAYOUT configuration options. Namely, you can change the default
+    width/height factor of the Vertical/Horizontal layouts.
+    
+    Note: You do not need to incorporate these changes into your configuration
+    file. PyTyle keeps all default config settings embedded to fall back on if
+    a setting is missing in the configuration file.
+    
+    Note 2: If you ever want to reset your config file, you can do so easily by
+    stopping PyTyle, renaming your current configuration file to something else,
+    and starting PyTyle again. You will have a brand new default configuration. 
+#===============================================================================
+0.7.1
+
+- Some bug fixes.    
 #===============================================================================    
 0.7
 
