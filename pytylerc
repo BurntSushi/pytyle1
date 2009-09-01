@@ -47,10 +47,10 @@ Config.MISC = {
                'global_tiling': False,
                
                # This timeout is used several times in the main event
-               # loop. It is the amount of time we wait, for example,
-               # between when a new window is created and when we scan
-               # for new windows. I imagine that if you have a slower
-               # system, you might want to increase this.
+               # loop. It is the amount of time (seconds) we wait, for 
+               # example, between when a new window is created and when 
+               # we scan for new windows. I imagine that if you have a 
+               # slower system, you might want to increase this.
                #
                # Note: Using a timeout seems like a hack. Any better
                # ideas?
@@ -332,6 +332,12 @@ Config.LAYOUT = {
                              
                   # Default settings for the "HorizontalRows" layout.
                   'HorizontalRows': {
+                                     # The default height factor. This is used
+                                     # when the screen is initialled tiled (or
+                                     # reset). Possible values:
+                                     # 0 < y <= 1.0
+                                     'height_factor': 0.5,
+                                
                                      # Simply sets how many windows to have
                                      # in each row.
                                      'row_size': 2,

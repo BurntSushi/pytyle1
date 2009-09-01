@@ -138,8 +138,7 @@ class Event:
     
     #
     # Reports whether the screen setup has changed by checking the
-    # _NET_WORKAREA property. The workarea is the space we have to
-    # work with provided by the window manager.
+    # _NET_DESKTOP_GEOMETRY property.
     #
     def is_screen_change(self):
         if self._event and self._event.type == X.PropertyNotify and (self._event.atom == PROBE.atom("_NET_DESKTOP_GEOMETRY") or self._event.atom == PROBE.atom("_NET_NUMBER_OF_DESKTOPS")):
@@ -199,5 +198,14 @@ class Event:
     #
     def is_window_destroy(self):
         if self._event and self._event.type == X.DestroyNotify:
+            return True
+        return False
+    
+    #
+    # Reports whether the workarea has changed (i.e., a dock/panel has
+    # been added to the screen).
+    #
+    def is_workarea_change(self):
+        if self._event and self._event.type == X.PropertyNotify and self._event.atom == PROBE.atom("_NET_WORKAREA"):
             return True
         return False

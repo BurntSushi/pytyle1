@@ -242,11 +242,25 @@ try:
                 DEBUG.write("Could not properly handle window state event (iconified?)")
                 DEBUG.write(traceback.format_exc())
                 
+        # Detects if the "_NET_WORKAREA" property changed. Meaning
+        # that the available workspace is changed.
+        #
+        # Note: Sometimes we get a property changed event when it
+        # hasn't really changed. So all we want to do here is update
+        # the workarea properties.
+        elif e.is_workarea_change():
+            time.sleep(Config.misc('timeout'))
+            
+            try:
+                Desktop.refresh_desktops()
+            except:
+                DEBUG.write("Could not properly handle workarea change")
+                DEBUG.write(traceback.format_exc())
+                
         # Detects if the "_NET_DESKTOP_GEOMETRY" property changed.
         # Meaning the number of screens changed probably, so
         # we need to refresh our image of the current State.
         elif e.is_screen_change():
-            print "Desktop geometry changed..."
             DEBUG.write("Wiping the current state...")
             
             # We should wait a little bit longer here...

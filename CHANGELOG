@@ -26,6 +26,15 @@ please don't hesitate to contact me:
 
 
 #===============================================================================
+0.7.3
+
+- Detects new panels/docks on the fly
+    PyTyle will now detect panels/docks added while its running. (You shouldn't
+    have to restart PyTyle when you change the orientation of your docks/panels.)
+    
+    Note: This will *only* work if you're using one screen and *haven't* set
+    the WORKAREA option in your configuration file.
+#===============================================================================
 0.7.2
 
 - New wiki added

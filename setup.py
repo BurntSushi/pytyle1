@@ -34,7 +34,7 @@ setup(
       name = "pytyle",
       author = "Andrew Gallant",
       author_email = "andrew@pytyle.com",
-      version = "0.7.2",
+      version = "0.7.3",
       license = "GPL",
       description = "A manual tiling manager for EWMH compliant window managers",
       long_description = "See README",

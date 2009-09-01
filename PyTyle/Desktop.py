@@ -59,6 +59,20 @@ class Desktop:
                     screen.set_tiler(Config.tilers(Config.tiling(screen.id, desk_or_view)))
                     
     #
+    # Simply refreshes the desktop information. Used mainly when the workarea
+    # changes to accomodate docks/panels.
+    #
+    @staticmethod
+    def refresh_desktops():
+        for desk in PROBE.get_desktops().values():
+            if desk['id'] in State.get_desktops():
+                desktop = State.get_desktops()[desk['id']]
+                desktop.update_attributes(desk)
+                for viewport in desktop.viewports.values():
+                    for screen in viewport.screens.values():
+                        screen.needs_tiling()
+                    
+    #
     # Same as "load_desktops" except we're just refreshing their information.
     #   
     @staticmethod
