@@ -82,15 +82,8 @@ Config.MISC = {
 # 
 # Any letter or number. There are also names for special keys.
 #
-# I don't have a complete listing yet. I'll put it here soon.
-# In general, you can use pretty much any key, but it has 
-# to be recognized by Xlib. (For instance, "comma" and not "," 
-# and not "Comma" even.)
-#
-# If you need a list, check out your Python Xlib library,
-# probably located somewhere like...
-# /usr/lib/python2.x/site-packages/Xlib/keysymdef/
-# Specifically, see "miscellany.py" and "latin1.py"
+# For a complete listing, see the PyTyle wiki:
+# http://pytyle.com/wiki/Key_listing
 #
 # Note: I haven't been able to get the F([1-9]|(1[0-2]) keys
 # to work yet. (Although, I've only tried in OpenBox.)
