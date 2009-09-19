@@ -55,6 +55,7 @@ class Config:
                          'global_tiling': False,
                          'timeout': 0.1,
                          'decorations': True,
+                         'original_decor': True,
                          },
                 'KEYMAP': {
                            'Alt-A': 'tile.default',

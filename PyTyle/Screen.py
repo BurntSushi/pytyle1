@@ -129,10 +129,16 @@ class Screen:
                 height = self.height - Config.workarea(0, 'bottom') + Config.workarea(0, 'top')
                 width = self.width - Config.workarea(0, 'right') + Config.workarea(0, 'left')
             else:
-                x = self.viewport.x
-                y = self.viewport.y
+                if PROBE.is_compiz():
+                    x = self.viewport.x
+                    y = self.viewport.y
+                else:
+                    x = self.viewport.desktop.x
+                    y = self.viewport.desktop.y
+                    
                 height = self.viewport.desktop.height
                 width = self.viewport.desktop.width
+                print x, y, width, height
         else:
             x = self.x
             y = self.y

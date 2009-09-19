@@ -26,6 +26,25 @@ please don't hesitate to contact me:
 
 
 #===============================================================================
+0.7.4
+
+- Bug fix: Detection of panel orientation
+    If you let PyTyle automatically detect your panels (i.e., not setting your
+    workarea), then it wasn't properly reserving space if your panel was at
+    the top or left of your screen.
+    
+- Bug fix: Decorations (NEW CONFIGURATION OPTION ADDED)
+    If you aren't using any decorations at all in Openbox, then PyTyle was still
+    fiddling with them. Specifically, if you had decorations disabled on the
+    Openbox end, then PyTyle would re-add them if you issued an untile command.
+    
+    Since Openbox still reports the sizes of decorations even when they're
+    disabled, there really isn't a way to reliably detect whether a window has
+    decorations or not. The solution here was to add a new configuration option:
+    original_decor. This should simply be whether or not you have decorations
+    enabled/disabled from the Openbox end.
+
+#===============================================================================
 0.7.3
 
 - Detects new panels/docks on the fly

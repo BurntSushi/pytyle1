@@ -146,7 +146,11 @@ class Tile:
     def _untile(self):
         # just resize all the windows back to their original x/y/width/height        
         for window in self.storage.get_all():
-            window.add_decorations()
+            if Config.misc('original_decor'):
+                window.add_decorations()
+            else:
+                window.remove_decorations()
+                
             window.resize(window.origx, window.origy, window.origwidth, window.origheight)
             
     #
@@ -416,10 +420,15 @@ class Tile:
             window.remove_static_property()
             
         if Config.misc('decorations'):
+            if not Config.misc('original_decor'):
+                window.add_decorations()
+                
             window.resize(int(x), int(y), int(width - window.d_left - window.d_right), int(height - window.d_top - window.d_bottom))
         else:
-            window.remove_decorations()
-            window.resize(int(x), int(y), int(width), int(height))
+            if Config.misc('original_decor'):
+                window.remove_decorations()
+                
+            window.resize(int(x), int(y), int(width - 2), int(height - 2))
             
     #
     # Reloads the entire storage container underlying the tiling algorithm.

@@ -68,6 +68,16 @@ Config.MISC = {
                # Note: I haven't researched this yet, but how easy is
                # it to draw borders around windows (XMonad style)?
                'decorations': True,
+               
+               # This setting should reflect whether or not you have
+               # decorations enabled or disabled from the *WINDOW
+               # MANAGER* end. This is needed because we can't reliably 
+               # detect if windows have decorations or not.
+               #
+               # For example, if you have decorations disabled in Openbox,
+               # then set this to "False" to prevent PyTyle from adding
+               # decorations to your windows.
+               'original_decor': True,
                }
 
 

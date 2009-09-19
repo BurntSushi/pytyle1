@@ -129,6 +129,7 @@ class Window:
     #   
     def add_decorations(self):
         PROBE.window_add_decorations(self.xobj)
+        self.static = True
         
     #
     # Closes the current window. There are some problems with this right
@@ -266,7 +267,7 @@ class Window:
     #   
     def remove_decorations(self):
         PROBE.window_remove_decorations(self.xobj)
-        window.static = False
+        self.static = False
         
     #
     # Yet another weird thing to handle. Sometimes windows will set their
