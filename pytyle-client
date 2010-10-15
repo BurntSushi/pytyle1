@@ -1,0 +1,42 @@
+#!/usr/bin/python
+#===============================================================================
+# PyTyle - A manual tiling manager
+# Copyright (C) 2009  Andrew Gallant <andrew@pytyle.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#===============================================================================
+
+# A big thanks to Johannes Pirkl for this patch!
+
+from Xlib import X, protocol
+from Xlib.display import Display
+import sys
+
+command_number = int(sys.argv[1])
+
+display = Display()
+root = display.screen().root
+
+ATOM = display.intern_atom("_PYTYLE_REMOTE")
+mask = (X.SubstructureRedirectMask|X.SubstructureNotifyMask)
+
+
+cm_event = protocol.event.ClientMessage(
+    window = root,
+    client_type = ATOM,
+    data = (32, [command_number,0,0,0,0]))
+
+root.send_event(cm_event,event_mask=mask)
+display.flush()
