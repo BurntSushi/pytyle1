@@ -34,10 +34,10 @@ class HorizontalRows (TileDefault):
     # Does almost the same thing as the Horizontal layout,
     # but is a bit more complex to account for multiple
     # rows.
-    #           
+    #
     def _tile(self):
         x, y, width, height = self.screen.get_workarea()
-        
+
         # set some vars...
         masters = self.storage.get_masters()
         slaves = self.storage.get_slaves()
@@ -45,32 +45,32 @@ class HorizontalRows (TileDefault):
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
         last_row_size = len(slaves) % row_size
         if not last_row_size: last_row_size = row_size
-        
+
         masterWidth = width if not masters else (width / len(masters))
         masterHeight = height if not slaves else int(height * self.state.get('height_factor'))
         masterY = y
         masterX = x
-               
+
         slaveWidth = width if not slaves else (width / row_size)
         slaveHeight = height if not slaves else ((height if not masters else height - masterHeight) / rows)
         slaveY = y if not masters else (y + masterHeight)
         slaveX = x
-        
+
         # resize the master windows
         for master in masters:
-            self.help_resize(master, masterX, masterY, masterWidth, masterHeight)                
+            self.help_resize(master, masterX, masterY, masterWidth, masterHeight, self.state.get('margin'))
             masterX += masterWidth
-        
+
         current_row = 1
         current_window = 1
         for slave in slaves:
             # last row!
             if current_row == rows:
                 slaveWidth = width / last_row_size
-                
-            self.help_resize(slave, slaveX, slaveY, slaveWidth, slaveHeight)                
+
+            self.help_resize(slave, slaveX, slaveY, slaveWidth, slaveHeight, self.state.get('margin'))
             slaveX += slaveWidth
-            
+
             if current_window % row_size == 0:
                 current_row += 1
                 current_window = 1
@@ -78,7 +78,7 @@ class HorizontalRows (TileDefault):
                 slaveY += slaveHeight
             else:
                 current_window += 1
-    
+
     #
     # This one is actually pretty neat. First we need to take care
     # of our masters, which is pretty straight forward. Then we move
@@ -91,85 +91,85 @@ class HorizontalRows (TileDefault):
     # what could be a nasty rounding problem, we modify the pixel
     # increase/decrease number right away to make sure it's a multiple
     # of the number of rows. (We go down instead of up.)
-    #                     
+    #
     def _master_increase(self, factor = 0.05):
         x, y, width, height = self.screen.get_workarea()
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
         row_size = self.state.get('row_size')
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
-        
+
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
-        
+
         # first calculate pixels...
         pixels = int(((self.state.get('height_factor') + factor) * height) - (self.state.get('height_factor') * height))
         self.state.set('height_factor', self.state.get('height_factor') + factor)
-        
+
         # Make it easy... change pixels to next closest
         # multiple of the number of rows...
-        pixels = pixels - (pixels % rows)        
+        pixels = pixels - (pixels % rows)
         slave_pixels = pixels / rows
-        
+
         current_row = 1
         current_window = 1
         height_pixels = pixels
-        for slave in slaves:                
+        for slave in slaves:
             slave.resize(slave.x, slave.y + height_pixels, slave.width, slave.height - slave_pixels)
-            
+
             if current_window % row_size == 0:
                 current_row += 1
                 current_window = 1
                 height_pixels -= slave_pixels
             else:
                 current_window += 1
-        for master in masters:            
+        for master in masters:
             master.resize(master.x, master.y, master.width, master.height + pixels)
-    
+
     #
     # See master_increase.
-    # 
+    #
     def _master_decrease(self, factor = 0.05):
         x, y, width, height = self.screen.get_workarea()
         slaves = self.storage.get_slaves()
         masters = self.storage.get_masters()
         row_size = self.state.get('row_size')
         rows = int(math.ceil(float(len(slaves)) / float(row_size)))
-        
+
         # Stop if neither of either... haha
         if not slaves or not masters:
             return
-        
+
         # first calculate pixels...
         pixels = int((self.state.get('height_factor') * height) - ((self.state.get('height_factor') - factor) * height))
         self.state.set('height_factor', self.state.get('height_factor') - factor)
-        
+
         # Make it easy... change pixels to next closest
         # multiple of the number of rows...
-        pixels = pixels - (pixels % rows)        
+        pixels = pixels - (pixels % rows)
         slave_pixels = pixels / rows
-        
+
         current_row = 1
         current_window = 1
         height_pixels = pixels
-        for slave in slaves:                
+        for slave in slaves:
             slave.resize(slave.x, slave.y - height_pixels, slave.width, slave.height + slave_pixels)
-            
+
             if current_window % row_size == 0:
                 current_row += 1
                 current_window = 1
                 height_pixels -= slave_pixels
             else:
                 current_window += 1
-        for master in masters:            
+        for master in masters:
             master.resize(master.x, master.y, master.width, master.height - pixels)
-            
+
     #------------------------------------------------------------------------------
     # OVERLOADED PRIVATE HELPER METHODS
-    #------------------------------------------------------------------------------ 
-        
-        
+    #------------------------------------------------------------------------------
+
+
     #
     # In HorizontalRows, the alignment of the masters is a bit weird. We would like
     # to have a consistent ordering style like so:
@@ -189,7 +189,7 @@ class HorizontalRows (TileDefault):
         masters = self.storage.get_masters()
         slaves = self.storage.get_slaves()
         all = masters + slaves
-        
+
         if masters and self.screen.get_active().id == masters[-1].id:
             if not slaves:
                 return masters[0]
@@ -208,7 +208,7 @@ class HorizontalRows (TileDefault):
             for i in range(0, len(masters) - 1):
                 if self.screen.get_active().id == masters[i].id:
                     return masters[(i + 1)]
-        
+
     #
     # See help_find_next above. Also see the comments in the code,
     # as help_find_previous is basically the same thing- we're just
@@ -218,7 +218,7 @@ class HorizontalRows (TileDefault):
         masters = self.storage.get_masters()
         slaves = self.storage.get_slaves()
         all = masters + slaves
-        
+
         if masters and self.screen.get_active().id == masters[0].id:
             if not slaves:
                 return masters[-1]
@@ -241,5 +241,5 @@ class HorizontalRows (TileDefault):
 # You must have this line's equivalent for your tiling algorithm!
 # This makes it possible to dynamically load tiling algorithms.
 # (So that you may simply drop them into the Tilers directory,
-# and add their name to the configuration- vini, vidi, vicci!)            
+# and add their name to the configuration- vini, vidi, vicci!)
 CLASS = HorizontalRows

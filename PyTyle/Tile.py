@@ -29,7 +29,7 @@ wish.)
 In fact, to create your own customized tiling algorithm, you need only overload
 the following methods: _tile, _cycle, _master_increase, _master_decrease,
 help_find_next, and help_find_previous. By default, Vertical and Horizontal are
-so similar, that currently, _cycle, help_find_next, and help_find_previous are 
+so similar, that currently, _cycle, help_find_next, and help_find_previous are
 overloaded once in TileDefault (which cannot be used as a tiling algorithm by
 itself), and _tile, _master_increase, and _master_decrease are each overloaded
 accordingly in two of TileDefault's subclasses: Horizontal and Vertical.
@@ -51,8 +51,8 @@ from PyTyle.TileState import TileState
 class Tile:
     #------------------------------------------------------------------------------
     # STATIC METHODS (DISPATCHER RELATED)
-    #------------------------------------------------------------------------------ 
-    
+    #------------------------------------------------------------------------------
+
     #
     # Initiate the dispatching routing.
     #
@@ -76,7 +76,7 @@ class Tile:
             if keycode not in State.get_dispatcher():
                 print >> sys.stderr, "Keycode %s is not bound" % keycode
                 return
-            
+
             # Now we need to determine which masks were used...
             if masks in State.get_dispatcher()[keycode]:
                 action = State.get_dispatcher()[keycode][masks]
@@ -90,7 +90,7 @@ class Tile:
             # We can only initiate tiling through keycodes...
             if not tiler.screen.is_tiling():
                 return
-            
+
         # Turn the action into a method...
         if action.find('tile.') != -1:
             layout = action[(action.find('.') + 1):]
@@ -101,32 +101,32 @@ class Tile:
             action = Tile.tile
         else:
             action = eval('Tile.' + action)
-            
+
         action(tiler)
-    
-    
+
+
     #------------------------------------------------------------------------------
     # CONSTRUCTOR AND GENERIC TILING METHODS
     #------------------------------------------------------------------------------
-    
+
     #
     # Constructor simply instantiates the TileStorage class and passes it the window filter.
     # Every tiling instance must be attached to a screen.
     #
     # Also, in general, the following tiling methods are fairly generic (any method beginning
-    # with an underscore). However, the class hierarchy is setup in such a way that does not 
+    # with an underscore). However, the class hierarchy is setup in such a way that does not
     # preclude their customization. Simply overload whichever method that needs customizing
     # in your tiling class. (_tile, _cycle, _master_increase, _master_decrease should be
     # sufficient here. Along with the helper methods help_find_next and help_find_previous.)
     # We also initialize this tiler's "state"- this will automatically save certain things for
     # us, like the sizes of panes.
-    # 
+    #
     def __init__(self, screen):
         self.screen = screen
         self.storage = TileStorage()
         self.cycleIndex = 0
         self.state = TileState(self)
-        
+
     #
     # The core of the tiling algorithm. This will be called whenever PyTyle senses
     # that a screen needs to be re-tiled. It is essentially the bread and butter of
@@ -137,28 +137,28 @@ class Tile:
     #
     def _tile(self):
         pass
-        
+
     #
     # There is probably no need to overload this one. It simply iterates over all
     # stored windows and resizes them back to their original geometry. Geometry is
     # mainly saved when a window is first created and maybe when it switches screens.
     #
     def _untile(self):
-        # just resize all the windows back to their original x/y/width/height        
+        # just resize all the windows back to their original x/y/width/height
         for window in self.storage.get_all():
             if Config.misc('original_decor'):
                 window.add_decorations()
             else:
                 window.remove_decorations()
-                
+
             window.resize(window.origx, window.origy, window.origwidth, window.origheight)
-            
+
     #
     # Tells PyTyle to reload the configuration file.
     #
     def _reload(self):
         State.do_reload()
-        
+
     #
     # Does a hard reset of the current screen. It empties the tiling storage, reloads
     # the current screen (probes for all windows), and adds the screen to the tiling
@@ -170,7 +170,7 @@ class Tile:
         self.state.reset()
         self.cycleIndex = 0
         self.screen.needs_tiling()
-        
+
     #
     # Responsible for cycling all slaves through the master slot. If there are more
     # than one master, then simply use the first master slot. If there are no masters
@@ -180,7 +180,7 @@ class Tile:
     #
     def _cycle(self):
         pass
-        
+
     #
     # Simply puts focus on the given screen. The screen is responsible for providing
     # the currently active window. If we don't have one, then don't do anything. Also,
@@ -190,14 +190,14 @@ class Tile:
         # stop if current window...
         if self.screen.id == screen_num:
             return
-        
+
         for screen in self.screen.viewport.screens.values():
             if screen_num == screen.id:
                 if not screen.get_active():
                     return
                 else:
                     screen.get_active().activate()
-        
+
     #
     # Moves the active window to the given screen. Immediately quit if the screen is
     # the same as the current tiler screen.
@@ -210,16 +210,16 @@ class Tile:
     # to is in tiling mode. If so, add the screen to the tiling queue (the current screen
     # also has to be added). Thus, if the screen we're moving it to is in tiling mode
     # then that screen is responsible for its placement. If not, arbitrarily assign
-    # the window to the upper left coordinates of the screen. (Could be bad.) We 
+    # the window to the upper left coordinates of the screen. (Could be bad.) We
     # must then update the screen object of the window we moved, and activate the *old*
     # screen. (Incidentally, I did it this way because that is the default behavior
     # of XMonad.)
-    # 
+    #
     def _screen_put(self, screen_num):
         # stop if current screen...
         if self.screen.id == screen_num:
             return
-                
+
         for screen in self.screen.viewport.screens.values():
             if screen_num == screen.id:
                 add = self.screen.get_active()
@@ -227,20 +227,20 @@ class Tile:
                 self.storage.remove(add)
                 screen.add_window(add)
                 screen.get_tiler().storage.add(add)
-                
+
                 if not screen.is_tiling():
                     add.resize(screen.x, screen.y, add.width, add.height)
-                
+
                 add.screen = screen
                 self.screen.get_active().activate()
-    
+
     #
     # Increases the area of the master pane. What this does is up to your tiling
     # algorithm. Pay special attention to the proper resizing of any other pane(s).
     #
     def _master_increase(self):
         pass
-    
+
     #
     # Inverse of _master_increase.
     # _master_increase(_master_decrease(window placement)) = window placement
@@ -248,7 +248,7 @@ class Tile:
     #
     def _master_decrease(self):
         pass
-                
+
     #
     # Simply adds a master to the storage and submits the current screen into the
     # tiling queue. It is possible that your tiling algorithm might not want to
@@ -274,9 +274,9 @@ class Tile:
             self.storage.add(slaves[0])
         else:
             return
-        
+
         self.screen.needs_tiling()
-        
+
     #
     # Inverse of _add_master.
     #
@@ -291,7 +291,7 @@ class Tile:
         all = self.storage.get_all()
         while self.storage.get_master_count() > len(all):
             self.storage.dec_master_count()
-             
+
         # make sure the current window is a master...
         masters = self.storage.get_masters()
         if self.screen.get_active().id in self.storage.get_masters_by_id():
@@ -304,9 +304,9 @@ class Tile:
             self.storage.add(masters[0])
         else:
             return
-        
+
         self.screen.needs_tiling()
-        
+
     #
     # A very simple method to make the current window the master. If there are more
     # than one master, then use the first master. If there are no masters, then do
@@ -315,19 +315,19 @@ class Tile:
     def _make_active_master(self):
         if self.storage.get_masters():
             self.help_switch(self.storage.get_masters()[0], self.screen.get_active())
-        
+
     #
     # Simply put the focus on the master window. If there are more than one master,
     # then use the first master. If there are no masters, then do nothing.
     #
     def _win_master(self):
         masters = self.storage.get_masters()
-        
+
         if not masters:
             return
-        
+
         masters[0].activate()
-        
+
     #
     # Simply closes the current window.
     #
@@ -337,43 +337,43 @@ class Tile:
     #
     def _win_close(self):
         self.screen.get_active().close()
-     
+
     #
     # Focuses on the previous window.
-    #   
+    #
     def _win_previous(self):
         self.help_find_previous().activate()
-     
-    #   
+
+    #
     # Focuses on the next window.
     #
     def _win_next(self):
         self.help_find_next().activate()
-        
+
     #
     # Switches the current window with the previous window.
     #
     def _switch_previous(self):
         previous = self.help_find_previous()
-        
+
         # only one window... bye
         if previous.id == self.screen.get_active().id:
             return
-        
+
         self.help_switch(previous, self.screen.get_active())
-     
+
     #
     # Switches the current window with the next window.
-    #   
+    #
     def _switch_next(self):
         next = self.help_find_next()
-        
+
         # only one window... bye
         if next.id == self.screen.get_active().id:
             return
-        
+
         self.help_switch(next, self.screen.get_active())
-        
+
     #
     # Maximizes all windows managed by the tiler.
     #
@@ -383,14 +383,14 @@ class Tile:
     def _max_all(self):
         for window in self.storage.get_all():
             window.maximize()
-     
+
     #
     # Restores all windows managed by the tiler.
-    #   
+    #
     def _restore_all(self):
         for window in self.storage.get_all():
             window.restore()
-            
+
     #
     # A simple debugging tool. Only useful if PyTyle is running from a shell.
     # (Tentatively assigned the Alt-Q key binding.)
@@ -399,37 +399,43 @@ class Tile:
         print State.get_wm_name()
         print self.screen.viewport.desktop
         print self.storage
-        
-    
+
+
     #------------------------------------------------------------------------------
     # PRIVATE HELPER METHODS
-    #------------------------------------------------------------------------------ 
-    
+    #------------------------------------------------------------------------------
+
     #
     # Simply saves the position of all windows on this tiling screen.
     #
     def help_save(self):
         for window in self.screen.windows.values():
             window.save_geometry()
-            
+
     #
     # Resizes the given window. Takes into account its decorations.
     #
-    def help_resize(self, window, x, y, width, height):
+    def help_resize(self, window, x, y, width, height, margin = 0):
+        if margin > 0:
+            x += margin
+            y += margin
+            width -= (2 * margin)
+            height -= (2 * margin)
+
         if window.static:
             window.remove_static_property()
-            
+
         if Config.misc('decorations'):
             if not Config.misc('original_decor'):
                 window.add_decorations()
-                
+
             window.resize(int(x), int(y), int(width - window.d_left - window.d_right), int(height - window.d_top - window.d_bottom))
         else:
             if Config.misc('original_decor'):
                 window.remove_decorations()
-                
+
             window.resize(int(x), int(y), int(width - 2), int(height - 2))
-            
+
     #
     # Reloads the entire storage container underlying the tiling algorithm.
     # Unless you have really special needs, this should be sufficient. The
@@ -446,23 +452,23 @@ class Tile:
         for win in self.storage.get_all():
             if win.id not in self.screen.windows or win.hidden:
                 self.storage.remove(win)
-                
+
         # gobble up active window first in case we need a master...
         # and then just add away...
         masters = self.storage.get_masters_by_id()
-        
+
         if self.screen.get_active() and len(masters) < self.storage.get_master_count() and self.screen.get_active().id in self.screen.windows and self.screen.get_active().id not in masters:
             self.storage.remove(self.screen.get_active())
             self.storage.add(self.screen.get_active())
-            masters = self.storage.get_masters_by_id()                
-        
+            masters = self.storage.get_masters_by_id()
+
         all = self.storage.get_all_by_id()
         for window in self.screen.windows.values():
             if not window.id in all:
                 self.storage.add_bottom(window)
             else:
                 self.storage.try_to_promote(window)
-        
+
     #
     # Simple method to switch two windows visually. It also takes care of
     # switching the windows in the storage container as well.
@@ -471,13 +477,13 @@ class Tile:
         # same? weird...
         if win1.id == win2.id:
             return
-        
+
         newpos = [win2.x, win2.y, win2.width, win2.height]
         win2.resize(win1.x, win1.y, win1.width, win1.height)
         win1.resize(newpos[0], newpos[1], newpos[2], newpos[3])
-        
+
         self.storage.switch(win1, win2)
-        
+
     #
     # The help_find_next and help_find_previous helper methods must be implemented
     # in a sub class if the functionality is to be used. Tiling
@@ -487,11 +493,11 @@ class Tile:
     #
     def help_find_next(self):
         pass
-    
+
     def help_find_previous(self):
         pass
-        
-    
+
+
     #------------------------------------------------------------------------------
     # DISPATCH
     #
@@ -505,28 +511,28 @@ class Tile:
     #
     # You can get cursory information about these methods from the configuration
     # file, or you may peruse their comments above (in this class), and/or may
-    # also take a look at the comments in Tilers/TileDefault.py, 
+    # also take a look at the comments in Tilers/TileDefault.py,
     # Tilers/Vertical.py, and/or Tilers/Horizontal.py.
-    #------------------------------------------------------------------------------ 
-        
+    #------------------------------------------------------------------------------
+
     def tile(self):
         # save state...
         if not self.screen.is_tiling():
             self.help_save()
-            
+
         # If we haven't tiled and we're about to,
         # reload the storage...
         if not self.screen.is_tiled():
             self.help_reload()
-            
+
         self.screen.enable_tiling()
         self._tile()
         self.screen.got_tiling()
-        
+
     def untile(self):
         self._untile()
         self.screen.disable_tiling()
-        
+
     def cycle_tiler(self):
         for i in range(len(Config.misc('tilers'))):
             if Config.misc('tilers')[i] is self.__class__.__name__:
@@ -534,74 +540,74 @@ class Tile:
                     self.screen.set_tiler(Config.tilers(Config.misc('tilers')[0]))
                 else:
                     self.screen.set_tiler(Config.tilers(Config.misc('tilers')[i + 1]))
-                    
+
         self._reset()
-        
+
     def reload(self):
         self._reload()
-        
+
     def reset(self):
         self._reset()
-        
+
     def cycle(self):
         self._cycle()
-        
+
     def screen0_focus(self):
         self._screen_focus(0)
-        
+
     def screen1_focus(self):
         self._screen_focus(1)
-        
+
     def screen2_focus(self):
         self._screen_focus(2)
-        
+
     def screen0_put(self):
-        self._screen_put(0)    
-        
+        self._screen_put(0)
+
     def screen1_put(self):
         self._screen_put(1)
-        
+
     def screen2_put(self):
         self._screen_put(2)
-            
+
     def master_increase(self):
         self._master_increase()
-            
+
     def master_decrease(self):
         self._master_decrease()
-        
+
     def add_master(self):
         self._add_master()
-        
+
     def remove_master(self):
         self._remove_master()
-                
+
     def make_active_master(self):
         self._make_active_master()
-        
+
     def win_master(self):
         self._win_master()
-    
+
     def win_close(self):
         self._win_close()
-        
+
     def win_previous(self):
         self._win_previous()
-            
+
     def win_next(self):
         self._win_next()
-        
+
     def switch_previous(self):
         self._switch_previous()
-        
+
     def switch_next(self):
         self._switch_next()
-            
+
     def max_all(self):
         self._max_all()
-            
+
     def restore_all(self):
-        self._restore_all()        
-    
+        self._restore_all()
+
     def query(self):
         self._query()

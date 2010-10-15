@@ -27,7 +27,7 @@ properly, it could be outputting some useful error messages). I personally
 added PyTyle to my ~/.xinitrc like so:
 
     pytyle &
-    
+
 The entire source code of PyTyle is *HEAVILY* documented. Why? Because there
 aren't too many things I hate worse than undocumented code. I also love to
 write about how clever I am :-)
@@ -37,12 +37,12 @@ for python-xlib is abysmal. I would help contribute to it myself, but this was
 my first time using it (and python, incidentally), so my experience isn't up
 to snuff with it. At some point, though, I would like to create a Python window
 manager, and will probably use PyTyle (I like *manual* tiling) in it somewhere.
-When and if that happens, I'll try to write up some better python-xlib 
+When and if that happens, I'll try to write up some better python-xlib
 documentation. However, it looks like XCB is rising...
 
-Anyway, if you're looking at PyTyle because it does something with python-xlib 
-that you want to know how to do (and I only say this because I did this myself 
-with many a different programs), then search no further than Probe.py and 
+Anyway, if you're looking at PyTyle because it does something with python-xlib
+that you want to know how to do (and I only say this because I did this myself
+with many a different programs), then search no further than Probe.py and
 possibly Event.py. No other files interface with python-xlib.
 """
 
@@ -70,7 +70,7 @@ if not PROBE.is_wm_running():
 
 # load configuration
 # Very easy to use Python as a config file...
-# Should I change it to a more traditional config?  
+# Should I change it to a more traditional config?
 try:
     config_path = os.getenv('XDG_CONFIG_HOME')
     if not config_path:
@@ -82,82 +82,83 @@ try:
         if not os.path.exists(config_path):
             os.makedirs(config_path)
         shutil.copyfile("%s/PyTyle/pytylerc" % (distutils.sysconfig.get_python_lib()), config_file)
-         
+
     if os.access(config_file, os.F_OK | os.R_OK):
         execfile(config_file)
 except:
     DEBUG.write("Could not write configuration file to home directory and load it. Exiting!")
     DEBUG.write(traceback.format_exc())
     sys.exit(0)
-    
+
 try:
     # initialize the tilers dynamically, so all we need to do
     # is add a tiler to Tilers, and add it to the configuration
     for module in Config.MISC['tilers']:
         tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
         Config.TILERS[module] = tmp.CLASS
-        
+
     # Initialize hot keys...
     # See also, grab_key in Event.py
     State.register_hotkeys()
-        
+
     # Load all the desktops. This will fetch a list
     # of desktops from the window manager, instantiate
     # each of them (which also initializes the screens),
     # and finally sets the tilers for each screen.
     Desktop.load_desktops()
-    
+
     # Scan for new (this is init, so all) windows, and
     # loads them up with Window.load_window.
     # load_window queries for window information, decides
     # which screen a window is on, etc. It may also *NOT*
-    # load the given window if it decides its a popup.
+    # load the given window if it decides it's a popup.
     Window.load_new_windows()
-    
+
     # Asks the window manager for the currently active
     # desktop and window, and updates the State
     # accordingly (current desktop, current screen,
     # and current window).
     State.reload_active()
-    
+
     # Stall and await orders...
     while True:
-        if State.needs_reload():            
+        if State.needs_reload():
             try:
                 config_path = os.getenv('XDG_CONFIG_HOME')
                 if not config_path:
                     config_path = os.getenv('HOME') + '/.config'
                 config_path += '/pytyle'
                 config_file = "%s/pytylerc" % config_path
-                     
+
                 if os.access(config_file, os.F_OK | os.R_OK):
+                    print 'nice!'
                     execfile(config_file)
             except:
                 DEBUG.write("Could not write configuration file to home directory and load it. Exiting!")
                 DEBUG.write(traceback.format_exc())
                 sys.exit(0)
-                
+
             # Reload the tiling modules
             for module in Config.MISC['tilers']:
                 tmp = __import__('PyTyle.Tilers.' + module, fromlist=[''])
                 Config.TILERS[module] = tmp.CLASS
-                
+
             # Reload our key bindings
             #
             # Note: It seems like X keeps our previous key bindings
             # even though we "ungrab" them only after we attempt to
             # regrab the rest of the keybindings. This will thus spit
             # out an error if run from the command line, but otherwise
-            # full functionality is here. I support the only problem
+            # full functionality is here. I suppose the only problem
             # might arise if you were trying to "free up" a key. You
             # might need to restart PyTyle for that.
             State.unregister_hotkeys()
             State.register_hotkeys()
-            
+
             # And now wipe everything...
             Desktop.reload_desktops()
             State.did_reload()
-        
+
         # This is our queue of tilings that we need to flush.
         # Screens are queued for tiling when windows change,
         # disappear, popup, etc. We almost never make direct
@@ -168,10 +169,10 @@ try:
                 screen = State.dequeue_screen()
                 Tile.dispatch(screen.get_tiler(), 'tile')
             time.sleep(Config.misc('timeout'))
-            
+
         # This loads up the next event.
         e = Event()
-        
+
         # If the event is a key press, we need to call our
         # dispatcher to run the proper tiling action.
         if e.is_keypress():
@@ -180,30 +181,30 @@ try:
             except:
                 DEBUG.write("Could not complete key press request")
                 DEBUG.write(traceback.format_exc())
-            
+
         # If a window receives focus or changes to another
         # desktop, then we need to reload the State with
         # the proper active window.
         #elif e.is_focus_in() or e.is_desktop_change():
         elif e.is_active_change():
-            State.reload_active() 
-        
+            State.reload_active()
+
         elif e.is_desktop_change():
             time.sleep(Config.misc('timeout'))
             State.reload_active(None, True)
-            
+
         # If the window manager's client list changes, then
         # we need to add or remove a window
         elif e.is_windowlist_change():
             time.sleep(Config.misc('timeout'))
-            
+
             try:
                 Window.load_new_windows()
             except:
                 DEBUG.write("Could not tile new window - could be a popup that disappear")
                 DEBUG.write(traceback.format_exc())
                 continue
-            
+
             try:
                 newwins = State.scan_all_windows()
                 for win in State.get_windows().values():
@@ -213,7 +214,7 @@ try:
                 DEBUG.write("Could not properly handle window destruction")
                 DEBUG.write(traceback.format_exc())
                 continue
-            
+
         # A window changes when it's resized/moved, or when its
         # desktop property changes. In those cases, we want to
         # "refresh" the window with its real and current state.
@@ -224,24 +225,25 @@ try:
         # determine if screen(s) need updating, or if we need
         # to reload PyTyle's State.
         elif e.is_window_change():
-            try:       
+            try:
                 if e.get_window_id() in State.get_windows():
+                    print e._event
                     State.get_windows()[e.get_window_id()].refresh()
             except:
                 DEBUG.write("Could not properly handle window changing event (moved/resized/desktop change)")
                 DEBUG.write(traceback.format_exc())
-                
+
         # If a window's state changes, we need to find it in PyTyle
         # and refresh it. Refresh will handle whether or not the
         # screen needs to be re-tiled.
-        elif e.is_state_change():        
+        elif e.is_state_change():
             try:
                 if e.get_window_id() in State.get_windows():
                     State.get_windows()[e.get_window_id()].refresh()
             except:
                 DEBUG.write("Could not properly handle window state event (iconified?)")
                 DEBUG.write(traceback.format_exc())
-                
+
         # Detects if the "_NET_WORKAREA" property changed. Meaning
         # that the available workspace is changed.
         #
@@ -250,22 +252,30 @@ try:
         # the workarea properties.
         elif e.is_workarea_change():
             time.sleep(Config.misc('timeout'))
-            
+
             try:
                 Desktop.refresh_desktops()
             except:
                 DEBUG.write("Could not properly handle workarea change")
                 DEBUG.write(traceback.format_exc())
-                
+
+        elif e.is_client_message():
+            callback = Config.callbacks(e.get_client_payload())
+            if callback:
+                Tile.dispatch(State.get_desktop()._VIEWPORT._SCREEN.get_tiler(), callback)
+            else:
+                DEBUG.write("Got unknown client message.")
+                DEBUG.write("payload: %s." % e.get_client_payload())
+
         # Detects if the "_NET_DESKTOP_GEOMETRY" property changed.
         # Meaning the number of screens changed probably, so
         # we need to refresh our image of the current State.
         elif e.is_screen_change():
             DEBUG.write("Wiping the current state...")
-            
+
             # We should wait a little bit longer here...
             time.sleep(3)
-            
+
             try:
                 State.wipe()
                 Desktop.load_desktops()
@@ -273,7 +283,7 @@ try:
                 State.reload_active()
             except:
                 DEBUG.write("Could not properly handle screen change")
-                DEBUG.write(traceback.format_exc()) 
+                DEBUG.write(traceback.format_exc())
 except:
     DEBUG.write("Fatal error")
     DEBUG.write(traceback.format_exc())

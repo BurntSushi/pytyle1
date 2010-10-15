@@ -32,11 +32,11 @@ from PyTyle.Debug import DEBUG
 
 from PyTyle.Window import *
 
-class Screen:       
+class Screen:
     #------------------------------------------------------------------------------
     # CONSTRCUTOR AND SCREEN RELATED ATTRIBUTES/METHODS
-    #------------------------------------------------------------------------------ 
-    
+    #------------------------------------------------------------------------------
+
     #
     # Initialization requies a desktop and attributes fetched from X. We also make
     # sure that it starts out with:
@@ -52,7 +52,7 @@ class Screen:
         self._tiling = Config.misc('global_tiling')
         self.windows = {}
         self.viewport = viewport
-        
+
     #
     # Disables tiling for this screen. Essentially, this is called when the
     # untile method is called via a key press. Meaning, if you programmatically
@@ -60,7 +60,7 @@ class Screen:
     # windows back to their original state- is that good behavior?)
     def disable_tiling(self):
         self._tiling = False
-        
+
     #
     # Tells the screen that PyTyle can now touch it. Currently, a screen can
     # *only* be enabled for tiling using a key binding tied to the tile method.
@@ -69,7 +69,7 @@ class Screen:
     #
     def enable_tiling(self):
         self._tiling = True
-        
+
     #
     # Fetches the currently active window for *this* screen. That means that
     # the currently active window for this screen may not be *THE* active
@@ -77,7 +77,7 @@ class Screen:
     #
     # Logic: The screen is in charge of reporting back an active window,
     # and also saying when there isn't one. There are four possibilities:
-    #    1. If there is no active window set, and there are no windows, 
+    #    1. If there is no active window set, and there are no windows,
     #       then return nothing.
     #    2. If there are windows, and no active window, then arbitrarily
     #       select the first window in the screen window storage to make
@@ -97,16 +97,16 @@ class Screen:
             self._active = wins[0]
         elif not wins and self._active.screen.id != self.id:
             self._active = None
-            
+
         return self._active
-    
+
     #
     # Fetches the current tiling algorithm. The tiling algorithm *must* be
     # a subclass of Tile. (Which does a lot of the grunt work for you.)
     #
     def get_tiler(self):
         return self._tile
-    
+
     #
     # Fetches the workarea of the current screen. Essentially, this has worked
     # quite well in my experience with just one monitor. However, when we add
@@ -135,7 +135,7 @@ class Screen:
                 else:
                     x = self.viewport.desktop.x
                     y = self.viewport.desktop.y
-                    
+
                 height = self.viewport.desktop.height
                 width = self.viewport.desktop.width
                 print x, y, width, height
@@ -144,22 +144,22 @@ class Screen:
             y = self.y
             height = self.height
             width = self.width
-            
+
             # Factor in manual docks...
             x += Config.workarea(self.id, 'left')
             y += Config.workarea(self.id, 'top')
             height -= Config.workarea(self.id, 'bottom') + Config.workarea(self.id, 'top')
             width -= Config.workarea(self.id, 'right') + Config.workarea(self.id, 'left')
-                
+
         return (x, y, width, height)
-    
+
     #
     # This is used whenever the screen's tiler calls the "tile" method. It
     # tells the screen that everything is find and dandy, like sour candy.
     #
     def got_tiling(self):
         self._tiled = True
-    
+
     #
     # Reports whether the screen is currently tiled. This is essentially
     # used by the Tile dispatcher. If we are coming into the tile method,
@@ -169,18 +169,18 @@ class Screen:
     #
     def is_tiled(self):
         return self._tiled
-    
+
     #
     # Reports whether this screen is in tiling mode or not.
     #
     def is_tiling(self):
         return self._tiling
-    
+
     #
     # This tells the screen that something happened and it therefore needs
     # to be re-tiled. So, this should be called any time something changes
     # on a screen (new window, window destroyed, etc). When it's called,
-    # it will also queue the screen into the State so that PyTyle will 
+    # it will also queue the screen into the State so that PyTyle will
     # re-tile the screen when it gets a chance.
     #
     # Note: We need more than just a queue- and that's why this attribute
@@ -190,22 +190,22 @@ class Screen:
     def needs_tiling(self):
         self._tiled = False
         State.queue_screen(self)
-    
+
     #
     # Simply sets the active window. No questions asked.
     #
     def set_active(self, window):
         self._active = window
-    
+
     #
     # Sets the tiler of this screen. A tiler *must* be a subclass of Tile.
-    # To switch tiling layouts (if the default layout cycler isn't enough), 
-    # it's as simple as calling this method, followed by a call to the 
+    # To switch tiling layouts (if the default layout cycler isn't enough),
+    # it's as simple as calling this method, followed by a call to the
     # _reset method in the Tile class.
-    # 
+    #
     def set_tiler(self, tile):
-        self._tile = tile(self)   
-        
+        self._tile = tile(self)
+
     #
     # This will add a new window to the screen. It will also take care of
     # updating the State for you. Additionally, it will tell itself that it
@@ -215,16 +215,30 @@ class Screen:
         State.add_window(window)
         self.windows[window.id] = window
         self.needs_tiling()
-     
+
     #
     # Opposite of add_window. It will still tell itself it needs to be
     # re-tiled.
-    #    
+    #
     def delete_window(self, window):
         State.delete_window(window)
         del self.windows[window.id]
         self.needs_tiling()
-    
+
+    #
+    # Tales a pair of x,y coordinates and the width and height of a window,
+    # and returns True if the window is contained within the current screen.
+    # False otherwise.
+    #
+    def is_in_screen(self, x, y, width, height):
+        if not self.is_on_screen(x, y):
+            return False
+
+        if width >= self.width or height >= self.height:
+            return False
+
+        return True
+
     #
     # Takes a pair of x,y coordinates and tells us whether they are in the
     # screen's grid. Also, take special care for windows with a negative x,y
@@ -234,13 +248,13 @@ class Screen:
     def is_on_screen(self, x, y):
         if x >= self.x and y >= self.y and x < (self.x + self.width) and y < (self.y + self.height):
             return True
-        
+
         # off the screen?
         if (x < 0 or y < 0) and self.x == 0 and self.y == 0:
             return True
-        
+
         return False
-                
+
     #
     # Updates screen with attributes fetched from X. This is actually everything
     # that the xinerama extension gives us. I'm not sure if screen ids remain
@@ -255,10 +269,10 @@ class Screen:
         self.y = attrs['y']
         self.width = attrs['width']
         self.height = attrs['height']
-        
+
     #
     # String representation of the current screen. See also the string
     # representations of desktop, viewport, and window.
-    #                
+    #
     def __str__(self):
         return 'Screen ' + str(self.id) + ' - [ID: ' + str(self.id) + ', X: ' + str(self.x) + ', Y: ' + str(self.y) + ', WIDTH: ' + str(self.width) + ', HEIGHT: ' + str(self.height) + ', VIEWPORT: ' + str(self.viewport.id) + ', DESKTOP: ' + str(self.viewport.desktop.id) + ']'

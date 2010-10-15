@@ -30,6 +30,7 @@ Most of the function of this class is to encapsulate event information.
 """
 
 from PyTyle.Probe import PROBE
+from PyTyle.Debug import DEBUG
 from Xlib import X
 
 class Event:    
@@ -117,6 +118,22 @@ class Event:
             return True
         return False
     
+    #
+    # Reports whether this is a clientMessage.
+    #
+    def is_client_message(self):
+        if self._event and self._event.type == X.ClientMessage and self._event.client_type == PROBE.atom("_PYTYLE_REMOTE"):
+            return True
+        return False
+
+    def get_client_payload(self):
+        if not self._event or not self.is_client_message():
+            return None
+        (format,data) = self._event.data
+        if format==32:
+            return data[0]
+        else:
+            return None
     #
     # Reports whether the current event is a focus *in* event. (We don't
     # care about focus *out* right now.) We also make sure that this is

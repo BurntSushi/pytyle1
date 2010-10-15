@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 
+import sys
 from distutils import sysconfig
 from distutils.core import setup
 
@@ -34,7 +35,7 @@ setup(
       name = "pytyle",
       author = "Andrew Gallant",
       author_email = "andrew@pytyle.com",
-      version = "0.7.4",
+      version = "0.7.5",
       license = "GPL",
       description = "A manual tiling manager for EWMH compliant window managers",
       long_description = "See README",
@@ -45,5 +46,5 @@ setup(
                     (sysconfig.get_python_lib() + '/PyTyle',
                      ['./pytylerc', './INSTALL', './LICENSE', './README', './TODO', './CHANGELOG'])
                     ],
-      scripts = ['pytyle']
+      scripts = ['pytyle','pytyle-client']
       )

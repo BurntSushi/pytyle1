@@ -35,7 +35,7 @@ class Config:
     #------------------------------------------------------------------------------
     # CONFIGURATION VARIABLES
     #------------------------------------------------------------------------------
-    
+
     MISC = {}
     KEYMAP = {}
     WORKAREA = {}
@@ -43,14 +43,15 @@ class Config:
     LAYOUT = {}
     TILING = {}
     TILERS = {}
-    
-    
+    CALLBACKS = {}
+
+
     #------------------------------------------------------------------------------
     # CONFIGURATION DEFAULTS
     #------------------------------------------------------------------------------
-    
+
     DEFAULTS = {
-                'MISC': {                         
+                'MISC': {
                          'tilers': ['Vertical', 'Horizontal', 'Maximal', 'Cascade'],
                          'global_tiling': False,
                          'timeout': 0.1,
@@ -97,12 +98,14 @@ class Config:
                 'LAYOUT': {
                            'Vertical': {
                                         'width_factor': 0.5,
+                                        'margin': 0,
                                         },
                            'Horizontal': {
                                           'height_factor': 0.5,
+                                          'margin': 0,
                                           },
                            'Maximal': {},
-                           'Cascade': {                                                                              
+                           'Cascade': {
                                        'decoration_height': 25,
                                        'width_factor': 1.0,
                                        'height_factor': 1.0,
@@ -112,60 +115,66 @@ class Config:
                            'HorizontalRows': {
                                               'row_size': 2,
                                               'height_factor': 0.5,
-                                              }, 
+                                              'margin': 0,
+                                              },
                            },
                 'TILING': {
                            'default': 'Vertical',
-                           }
+                           },
+                'CALLBACKS': {
+                            0:'make_active_master',
+                            1:'switch_previous',
+                            2:'switch_next'
+                            }
                 }
-    
-    
+
+
     #------------------------------------------------------------------------------
     # CONFIGURATION GETTERS
     #------------------------------------------------------------------------------
-    
+
     @staticmethod
     def misc(name):
         if name in Config.MISC:
             return Config.MISC[name]
-        
+
         if name in Config.DEFAULTS['MISC']:
             return Config.DEFAULTS['MISC'][name]
-        
+
         return None
-        
+
     @staticmethod
     def keymap(keys):
         if keys in Config.KEYMAP:
             return Config.KEYMAP[keys]
-        
+
         if keys in Config.DEFAULTS['KEYMAP']:
             return Config.DEFAULTS['KEYMAP'][keys]
-        
+
         return None
-        
+
     @staticmethod
     def workarea(screen_number, section):
         if screen_number in Config.WORKAREA and section in Config.WORKAREA[screen_number]:
             return Config.WORKAREA[screen_number][section]
-        
+
         return Config.DEFAULTS['WORKAREA'][0][section]
-        
+
     @staticmethod
     def filter():
         return Config.FILTER
-    
+
     @staticmethod
     def layout(tiler, option):
         layout = tiler.__class__.__name__
         if layout in Config.LAYOUT and option in Config.LAYOUT[layout]:
             return Config.LAYOUT[layout][option]
-        
+
         if layout in Config.DEFAULTS['LAYOUT'] and option in Config.DEFAULTS['LAYOUT'][layout]:
             return Config.DEFAULTS['LAYOUT'][layout][option]
-        
+
         return None
-        
+
     @staticmethod
     def tiling(screen, desk_or_view):
         if screen in Config.TILING:
@@ -175,14 +184,22 @@ class Config:
                 return Config.TILING[screen]
         elif 'default' in Config.TILING:
             return Config.TILING['default']
-        
+
         return Config.DEFAULTS['TILING']['default']
-        
+
     @staticmethod
     def tilers(layout):
         if layout in Config.TILERS:
             return Config.TILERS[layout]
-    
+
+    @staticmethod
+    def callbacks(num):
+        if num in Config.CALLBACKS:
+            return Config.CALLBACKS[num]
+        if num in Config.DEFAULTS['CALLBACKS']:
+            return Config.DEFAULTS['CALLBACKS'][num]
+        return None
+
     # Special flag to enable/disable debugging
     #
     # PRIVACY NOTE: This may log the titles of
