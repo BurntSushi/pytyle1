@@ -131,7 +131,6 @@ try:
                 config_file = "%s/pytylerc" % config_path
 
                 if os.access(config_file, os.F_OK | os.R_OK):
-                    print 'nice!'
                     execfile(config_file)
             except:
                 DEBUG.write("Could not write configuration file to home directory and load it. Exiting!")
